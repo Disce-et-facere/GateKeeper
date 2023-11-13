@@ -1,0 +1,131 @@
+#include <windows.h>
+
+
+// Message Handler Main
+LRESULT CALLBACK WndProc(HWND hwndMain, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    switch(msg)
+    {
+        case WM_CREATE:
+
+        break;
+
+        case WM_CLOSE:
+            DestroyWindow(hwndMain);
+        break;
+
+        case WM_DESTROY:
+            PostQuitMessage(0);
+        break;
+
+        default:
+
+            HBRUSH hbrBackground = GetSysColorBrush(COLOR_WINDOW);
+            SetClassLongPtr(hwndMain, GCLP_HBRBACKGROUND, (LONG_PTR)hbrBackground);
+            return DefWindowProc(hwndMain, msg, wParam, lParam);
+    }
+    return 0;
+}
+
+//      TO DO'S
+// Message handler Left
+// Message handler right
+// Message handler buttons?
+
+int WINAPI WinMain(HINSTANCE hInstance, 
+                   HINSTANCE hPrevInstance,
+                   LPSTR lpCmdLine, 
+                   int nCmdShow)
+{
+
+    char g_szClassName1[] = "GkMainWindow";
+
+    WNDCLASSEX wcMain;
+    HWND hwndMain;
+    HWND hwndLeft;
+    HWND hwndRight;
+    MSG Msg;
+
+    //Register Main window --->
+    wcMain.cbSize        = sizeof(WNDCLASSEX);
+    wcMain.style         = CS_VREDRAW | CS_HREDRAW;
+    wcMain.lpfnWndProc   = WndProc;
+    wcMain.cbClsExtra    = 0;
+    wcMain.cbWndExtra    = 0;
+    wcMain.hInstance     = hInstance;
+    wcMain.hIcon         = LoadIcon(NULL, IDI_APPLICATION);
+    wcMain.hCursor       = LoadCursor(NULL, IDC_ARROW);
+    wcMain.hbrBackground = (HBRUSH)(COLOR_BACKGROUND);
+    wcMain.lpszMenuName  = NULL;
+    wcMain.lpszClassName = g_szClassName1;
+    wcMain.hIconSm       = LoadIcon(NULL, IDI_APPLICATION);
+
+      if(!RegisterClassEx(&wcMain))
+    {
+        MessageBox(NULL, "Main Window Registration Failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
+        return 0;
+    }
+
+    //Create Main Window --->
+    hwndMain = CreateWindowEx(
+        WS_EX_CONTROLPARENT,
+        g_szClassName1,
+        "GATE KEEPER",
+        WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
+        GetSystemMetrics(SM_CXSCREEN)/2-400,
+        GetSystemMetrics(SM_CYSCREEN)/2-300,
+        800,
+        600,
+        NULL, NULL, hInstance, NULL);
+
+    if(hwndMain == NULL)
+    {
+        MessageBox(NULL, "Main Window Creation Failed!", "Error!",
+            MB_ICONEXCLAMATION | MB_OK);
+        return 0;
+    }
+
+    //Create Right Window --->
+    hwndRight = CreateWindowEx(
+        WS_EX_OVERLAPPEDWINDOW,
+        g_szClassName1,
+        "",
+        WS_CHILD | WS_VISIBLE,
+        587, 15, 185, 540,
+        hwndMain, NULL, hInstance, NULL);
+
+    if(hwndRight == NULL)
+    {
+        MessageBox(NULL, "Right Window Creation Failed!", "Error!",
+            MB_ICONEXCLAMATION | MB_OK);
+        return 0;
+    }
+
+    //Create Left Window --->
+    hwndLeft = CreateWindowEx(
+        WS_EX_OVERLAPPEDWINDOW,
+        g_szClassName1,
+        "",
+        WS_CHILD | WS_VISIBLE,
+        15, 15, 570, 540,
+        hwndMain, NULL, hInstance, NULL);
+
+    if(hwndRight == NULL)
+    {
+        MessageBox(NULL, "Left Window Creation Failed!", "Error!",
+            MB_ICONEXCLAMATION | MB_OK);
+        return 0;
+    }
+
+    ShowWindow(hwndMain, nCmdShow);
+    UpdateWindow(hwndMain);
+    
+
+    // Message loop
+    while(GetMessage(&Msg, NULL, 0, 0) > 0)
+    {
+        TranslateMessage(&Msg);
+        DispatchMessage(&Msg);
+    }
+    return Msg.wParam;
+}

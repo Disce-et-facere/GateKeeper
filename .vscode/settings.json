@@ -1,0 +1,24 @@
+{
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "c:\\Users\\krant\\Documents\\code\\c\\1",
+            "binaryPath": "c:\\Users\\krant\\Documents\\code\\c\\1\\main.exe",
+            "binaryArgs": []
+        },
+        {
+            "cwd": "c:\\Users\\krant\\Documents\\code\\c\\1",
+            "binaryPath": "c:\\Users\\krant\\Documents\\code\\c\\1\\gui.exe",
+            "binaryArgs": []
+        },
+        {
+            "cwd": "c:\\Users\\krant\\Documents\\code\\c\\1",
+            "binaryPath": "c:\\Users\\krant\\Documents\\code\\c\\1\\gateKeeper.exe",
+            "binaryArgs": []
+        }
+    ],
+    "files.associations": {
+        "safeinput.h": "c",
+        "commctrl.h": "c",
+        "cstdlib": "c"
+    }
+}
