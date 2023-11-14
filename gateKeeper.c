@@ -9,6 +9,7 @@
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
     HWND hListView;
+    HWND atBtn;
     HWND cnBtn;
     HWND cidBtn;
     HWND cpBtn;
@@ -89,13 +90,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
 
             // Create buttons
-            HWND atBtn = CreateWindowEx(
+            atBtn = CreateWindowEx(
                 0,
                 "BUTTON",
                 "ADD TAG",
                 WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
                 640, 10, 130, 30,
-                hwnd, NULL, GetModuleHandle(NULL), NULL);
+                hwnd, (HMENU)1001, GetModuleHandle(NULL), NULL);
 
              cnBtn = CreateWindowEx(
                 0,
@@ -127,7 +128,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                 "CHANGE ACCESS",
                 WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
                 640, 210, 130, 30,
-                hwnd, NULL, GetModuleHandle(NULL), NULL);
+                hwnd, (HMENU)1002, GetModuleHandle(NULL), NULL);
 
             // Disable inactive buttons to be activated later -->
             EnableWindow(cnBtn, FALSE);
@@ -137,6 +138,35 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
             break;
         }
+
+        case WM_COMMAND:
+        {
+            if (HIWORD(wParam) == BN_CLICKED) {
+                int buttonId = LOWORD(wParam);
+
+                // Identify which button was clicked based on its ID
+                switch (buttonId) {
+                    // här bråkar det :)
+                    case 1001:
+                    {
+                        EnableWindow(cacBtn, TRUE);
+                        invalid(cacBtn);
+
+
+                        
+
+                        MessageBox(NULL, "button is pressed!", "Error", MB_ICONEXCLAMATION | MB_OK);
+                        break;
+                    }
+                    case 1002:
+                        MessageBox(NULL, "cacBtn is pressed!", "Error", MB_ICONEXCLAMATION | MB_OK);
+                    default:
+                        break;
+                }
+            }
+            break;
+        }
+
         // under progess -->
         case WM_NOTIFY: {
             NMLISTVIEW* pnmv = (NMLISTVIEW*)lParam;
