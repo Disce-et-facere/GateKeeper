@@ -29,6 +29,7 @@
     "files.associations": {
         "safeinput.h": "c",
         "commctrl.h": "c",
-        "cstdlib": "c"
+        "cstdlib": "c",
+        "*.rh": "c"
     }
 }
