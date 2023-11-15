@@ -24,6 +24,11 @@
             "cwd": "c:\\Users\\krant\\Documents\\Github\\gateKeeper\\GateKeeper",
             "binaryPath": "c:\\Users\\krant\\Documents\\Github\\gateKeeper\\GateKeeper\\gateKeeper.exe",
             "binaryArgs": []
+        },
+        {
+            "cwd": "c:\\Users\\krant\\Documents\\Github\\GateKeeper",
+            "binaryPath": "c:\\Users\\krant\\Documents\\Github\\GateKeeper\\gateKeeper.exe",
+            "binaryArgs": []
         }
     ],
     "files.associations": {

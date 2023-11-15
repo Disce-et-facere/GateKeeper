@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <commctrl.h>
+#include <stdbool.h>
 
 #define TIMER_ENABLE_BUTTONS 1
 #define BUTTON_ENABLE_DELAY 100
@@ -18,17 +19,20 @@
     HWND cpBtn;
     HWND cacBtn;
     HWND atPopup;
+    HWND atNameLabel;
     HWND atName;
     HWND atComboBox;
+    HWND atRadioLabel;
     HWND atRadioTrue;
     HWND atRadioFalse;
-    HWND atAddbtn;
+    HWND atAddBtn;
     HWND atCancelbtn;
+
+BOOL newAtPu = TRUE;
 
 // Message handler for hwnd
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
-    BOOL isParent = TRUE;
     switch (msg) {
     
         // Handle pressed buttons
@@ -41,8 +45,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
                     case 1001:
                     {
-                        addTagPopup();
-                        break;
+                        if(newAtPu){
+                            addTagPopup();
+                            newAtPu = FALSE;
+                            break;    
+                        } else {
+                            ShowWindow(atPopup, SW_SHOW);
+                            break;
+                        }
+                        
+                        
                     }
                     case 1002:
                     {
@@ -62,12 +74,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                     }
                     case IDC_BUTTON_CANCEL:
                     {
-                        
-                        DestroyWindow(atPopup);
+                        ShowWindow(atPopup, SW_HIDE);
+                        SetWindowText(atName, "");
                         break;
                     }
                     default:
                         break;
+                }
+            }
+
+            if (HIWORD(wParam) == EN_CHANGE) {
+                
+                int textLength = GetWindowTextLength(atName);
+                if (textLength > 0) {
+                    EnableWindow(atAddBtn, TRUE);
+                }else {
+                    EnableWindow(atAddBtn, FALSE);
                 }
             }
             break;
@@ -111,8 +133,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         
         case WM_DESTROY:
         {
-            // seperate PQM function from parent and child
-            PostQuitMessage(0); 
+            PostQuitMessage(0);
             break;
         }    
             
@@ -295,41 +316,71 @@ int createMainContent(){
     return 0;
 }
 
+int geHwndPos(int i){
+
+    RECT hwndRect;
+    GetWindowRect(hwnd, &hwndRect);
+
+    int parentX = hwndRect.left;
+    int parentY = hwndRect.top;
+
+    if(i == 1){
+        return parentX;
+    } else if (i == 2){
+        return parentY;
+    }else 
+    
+    return 0;
+}
 
 int addTagPopup(){
 
-    WNDCLASS wcPopup = {0};
-    wcPopup.lpfnWndProc = WndProc;
-    wcPopup.hInstance = GetModuleHandle(NULL);
-    wcPopup.hbrBackground = (HBRUSH)(COLOR_WINDOW + 2);
-    wcPopup.hCursor       = LoadCursor(NULL, IDC_ARROW);
-    wcPopup.lpszClassName = "popupClass";
 
-    if (!RegisterClass(&wcPopup)) {
-        MessageBox(NULL, "AT Popup Registration Failed!", "Error", MB_ICONEXCLAMATION | MB_OK);
-        
-    }
+
+        WNDCLASS wcPopup = {0};
+        wcPopup.lpfnWndProc = WndProc;
+        wcPopup.hInstance = GetModuleHandle(NULL);
+        wcPopup.hbrBackground = (HBRUSH)(COLOR_WINDOW + 2);
+        wcPopup.hCursor       = LoadCursor(NULL, IDC_ARROW);
+        wcPopup.lpszClassName = "popupClass";
+
+        if (!RegisterClass(&wcPopup)) {
+            MessageBox(NULL, "AT Popup Registration Failed!", "Error", MB_ICONEXCLAMATION | MB_OK);
+            
+        }
     
     atPopup = CreateWindowEx(
         0,
         "popupClass",
         "",
         WS_POPUP | WS_VISIBLE,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        400, 400,
-        NULL, NULL, GetModuleHandle(NULL), NULL);
+        getHwndPos(1) + 355,
+        getHwndPos(2) + 30,
+        260, 
+        200,
+        hwnd, NULL, GetModuleHandle(NULL), NULL);
     
     if (atPopup == NULL) {
         MessageBox(NULL, "AT PopUp Creation Failed!", "Error", MB_ICONEXCLAMATION | MB_OK);
         
     }
+
+    atNameLabel = CreateWindow(
+        "STATIC", 
+        " Name:", 
+        WS_VISIBLE | WS_CHILD,
+        10, 
+        10, 
+        50, 
+        20, 
+        atPopup, NULL, NULL, NULL);
+
     atName = CreateWindowEx(
         0,
         "EDIT",
         "",
         WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL, 
-        10, 10, 180, 20, 
+        70, 10, 180, 20, 
         atPopup, (HMENU)IDC_EDIT_NAME, GetModuleHandle(NULL), NULL);
             
     atComboBox = CreateWindowEx(0, 
@@ -344,30 +395,42 @@ int addTagPopup(){
         SendMessage(atComboBox, CB_ADDSTRING, 0, (LPARAM)"Guest");
         SendMessage(atComboBox, CB_SETCURSEL, 0, 0);
 
+    atRadioLabel = CreateWindow(
+        "STATIC", 
+        " Access:", 
+        WS_VISIBLE | WS_CHILD,
+        10, 
+        80, 
+        70, 
+        20, 
+        atPopup, NULL, NULL, NULL);
+    
     atRadioTrue = CreateWindowEx(
         0, 
         "BUTTON", 
         "True", 
         WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON, 
-        10, 80, 60, 20, 
+        90, 80, 60, 20, 
         atPopup, (HMENU)IDC_RADIO_TRUE, GetModuleHandle(NULL), NULL);
 
     atRadioFalse = CreateWindowEx(0, 
         "BUTTON", 
         "False", 
         WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON, 
-        80, 80, 60, 20, 
+        170, 80, 60, 20, 
         atPopup, (HMENU)IDC_RADIO_FALSE, GetModuleHandle(NULL), NULL);
 
         SendMessage(atRadioTrue, BM_SETCHECK, BST_CHECKED, 0);
 
-    atAddbtn = CreateWindowEx(
+    atAddBtn = CreateWindowEx(
         0, 
         "BUTTON", 
         "ADD", 
         WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 
         10, 120, 80, 30, 
         atPopup, (HMENU)IDC_BUTTON_ADD, GetModuleHandle(NULL), NULL);
+
+    EnableWindow(atAddBtn, FALSE);
 
     atCancelbtn = CreateWindowEx(
         0, 
@@ -378,4 +441,16 @@ int addTagPopup(){
         atPopup, (HMENU)IDC_BUTTON_CANCEL, GetModuleHandle(NULL), NULL);
     
     return 0;
+}
+
+int changeNamePopup(){
+
+}
+
+int changeIdPopup(){
+
+}
+
+int changeAccessPopup(){
+
 }
