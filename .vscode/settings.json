@@ -35,6 +35,9 @@
         "safeinput.h": "c",
         "commctrl.h": "c",
         "cstdlib": "c",
-        "*.rh": "c"
+        "*.rh": "c",
+        "taghandler.h": "c",
+        "fileHandler.h": "c",
+        "gateKeeper.h": "c"
     }
 }

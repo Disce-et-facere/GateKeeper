@@ -1,23 +1,41 @@
 #include <windows.h>
 #include <commctrl.h>
-#include <stdbool.h>
+#include "tagHandler.h"
+// removed stdbool header since BOOL exists in windows header
 
 #define TIMER_ENABLE_BUTTONS 1
 #define BUTTON_ENABLE_DELAY 100
-#define IDC_EDIT_NAME       1006
+#define IDC_EDIT_NAME_AT    1006
 #define IDC_COMBO_ROLE      1007
 #define IDC_RADIO_TRUE      1008
 #define IDC_RADIO_FALSE     1009
 #define IDC_BUTTON_ADD      1010
-#define IDC_BUTTON_CANCEL   1011
+#define AT_BUTTON_CANCEL    1011
+#define CN_EDIT_NAME        1012
+#define CN_BUTTON_SAVE      1013
+#define CN_BUTTON_CANCEL    1014
+#define CID_COMBO_ROLE      1015
+#define CID_BUTTON_SAVE     1016
+#define CID_BUTTON_CANCEL   1017
+#define CA_RADIO_TRUE       1018
+#define CA_RADIO_FALSE      1019
+#define CA_BUTTON_SAVE      1020
+#define CA_BUTTON_CANCEL    1021
+#define RT_BUTTON_REMOVE    1022
+#define RT_BUTTON_CANCEL    1023
 
+
+    // Main Window (hwnd) -->
     HWND hwnd;
     HWND hListView;
     HWND atBtn;
+    HWND odBtn;
     HWND cnBtn;
     HWND cidBtn;
-    HWND cpBtn;
     HWND cacBtn;
+    HWND rtBtn;
+
+    // Add Tag Popup
     HWND atPopup;
     HWND atNameLabel;
     HWND atName;
@@ -28,9 +46,51 @@
     HWND atAddBtn;
     HWND atCancelbtn;
 
-BOOL newAtPu = TRUE;
+    // Change Name Popup
+    HWND cnPopup;
+    HWND cnCurrentNameLabel;
+    HWND cnNewNameLabel;
+    HWND cnName;
+    HWND cnAddBtn;
+    HWND cnCancelbtn;
 
-// Message handler for hwnd
+    // Change ID Popup
+    HWND cidPopup;
+    HWND cidCurrentIdLabel;
+    HWND cidNewIdLabel;
+    HWND cidComboBox;
+    HWND cidAddBtn;
+    HWND cidCancelbtn;
+
+    // Change Access Popup
+    HWND caPopup;
+    HWND caCurrentAccessLabel;
+    HWND caNewAccessLabel;
+    HWND caRadioTrue;
+    HWND caRadioFalse;
+    HWND caAddBtn;
+    HWND caCancelbtn;
+
+    // Remove Tag Popup
+    HWND rtPopup;
+    HWND rtSelectedNameLabel;
+    HWND rtSelectedIdLabel;
+    HWND rtSelectedAccessLabel;
+    HWND rtRemoveBtn;
+    HWND rtCancelbtn;
+
+    // globalize list Items
+    LVITEM lvItem;
+  
+BOOL popupRegd = FALSE; // maybe not needed as global?
+size_t currentListItems = 0;
+
+// TODO'S: Before user press the add button in the add tag popup, ask to scan tag before adding -> add after arduino setup
+//         Create function to add new tags/cards in the list. and remove the current dummies.
+//         Implement safeInput into userinput in add tag popup and change name popup.
+//         Add grab function from userInputs
+
+// Message handler for hwnd (Main Window), well all windows actually
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
     switch (msg) {
@@ -45,37 +105,102 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
                     case 1001:
                     {
-                        if(newAtPu){
-                            addTagPopup();
-                            newAtPu = FALSE;
+                        if(atPopup == NULL){
+                            addPopup(1);
+                            //disableAllButtons();
                             break;    
                         } else {
                             ShowWindow(atPopup, SW_SHOW);
+                            //disableAllButtons();
+                            break;
+                        }
+        
+                    }
+
+                    case 1002: // todo: fix enable disable buttons collision with enable on select in list!
+                    {
+                        if(cnPopup == NULL){
+                            addPopup(2);
+                            //disableAllButtons();
+                            break;   
+                        }else{
+                            ShowWindow(cnPopup, SW_SHOW);
+                            //disableAllButtons();
                             break;
                         }
                         
-                        
-                    }
-                    case 1002:
-                    {
                         break;
                     }
                     case 1003:
-                    {
+                    {   
+                        if(cidPopup == NULL){
+                            addPopup(3);
+                            //disableAllButtons();
+                            break;   
+                        }else{
+                            ShowWindow(cidPopup, SW_SHOW);
+                            //disableAllButtons();
+                            break;
+                        }
                         break;
                     }
                     case 1004:
                     {
+                        if(caPopup == NULL){
+                            addPopup(4);
+                            //disableAllButtons();
+                            break;   
+                        }else{
+                            ShowWindow(caPopup, SW_SHOW);
+                            //disableAllButtons();
+                            break;
+                        }
                         break;
                     }
                     case 1005:
                     {
+                        if(rtPopup == NULL){
+                            addPopup(5);
+                            //disableAllButtons();
+                            break;   
+                        }else{
+                            ShowWindow(rtPopup, SW_SHOW);
+                            //disableAllButtons();
+                            break;
+                        }
                         break;
                     }
-                    case IDC_BUTTON_CANCEL:
+                    case AT_BUTTON_CANCEL:
                     {
                         ShowWindow(atPopup, SW_HIDE);
                         SetWindowText(atName, "");
+                        //enableAllButtons();
+                        break;
+                    }
+                    case CN_BUTTON_CANCEL:
+                    {
+                        ShowWindow(cnPopup, SW_HIDE);
+                        SetWindowText(cnName, "");
+                        //enableAllButtons();
+                        break;
+                    }
+                    case CID_BUTTON_CANCEL:
+                    {
+                        ShowWindow(cidPopup, SW_HIDE);
+                        // add current id in combobox
+                        //enableAllButtons();
+                        break;
+                    }
+                    case CA_BUTTON_CANCEL:
+                    {
+                        ShowWindow(caPopup, SW_HIDE);
+                        //enableAllButtons();
+                        break;
+                    }
+                    case RT_BUTTON_CANCEL:
+                    {
+                        ShowWindow(rtPopup, SW_HIDE);
+                        //enableAllButtons();
                         break;
                     }
                     default:
@@ -85,18 +210,24 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
             if (HIWORD(wParam) == EN_CHANGE) {
                 
-                int textLength = GetWindowTextLength(atName);
-                if (textLength > 0) {
+                int textLengthAt = GetWindowTextLength(atName);
+                if (textLengthAt > 0) {
                     EnableWindow(atAddBtn, TRUE);
                 }else {
                     EnableWindow(atAddBtn, FALSE);
+                }
+                int textLengthCn = GetWindowTextLength(cnName);
+                if (textLengthCn > 0) {
+                    EnableWindow(cnAddBtn, TRUE);
+                }else {
+                    EnableWindow(cnAddBtn, FALSE);
                 }
             }
             break;
         }
 
         // Handle list selection
-        case WM_NOTIFY: 
+        case WM_NOTIFY: // remove timer here if possible? --->
         {
             NMLISTVIEW* pnmv = (NMLISTVIEW*)lParam;
             if (pnmv->hdr.code == LVN_ITEMCHANGING) {
@@ -120,13 +251,51 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
                     BOOL bItemSelected = ListView_GetSelectedCount(hListView) > 0;
 
+                        // fix disable rest of buttons when one button is pressed. shit ton of if statements?, same as line 114
+
                         EnableWindow(cnBtn, bItemSelected);
                         EnableWindow(cidBtn, bItemSelected);
-                        EnableWindow(cpBtn, bItemSelected);
                         EnableWindow(cacBtn, bItemSelected);
+                        EnableWindow(rtBtn, bItemSelected);
 
                     break;
                 }
+            }
+            break;
+        }
+
+        case WM_MOVE:
+        {   // auto reposition for popups --->
+            // no else if because the if statements checks if popup window is created or not.... fix/change later if needed
+            // change to IsWindowActive function() ? then an else if statement would work, swenglish
+            if(atPopup != NULL){
+
+                SetWindowPos(atPopup, NULL, getHwndPos(1) + 354, getHwndPos(2) + 36, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+                
+            }
+            
+            if(cnPopup != NULL){
+
+                SetWindowPos(cnPopup, NULL, getHwndPos(1) + 354, getHwndPos(2) + 110, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+                
+            }
+            
+            if(cidPopup != NULL){
+
+                SetWindowPos(cidPopup, NULL, getHwndPos(1) + 354, getHwndPos(2) + 150, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+                
+            }
+            
+            if(caPopup != NULL){
+
+                SetWindowPos(caPopup, NULL, getHwndPos(1) + 354, getHwndPos(2) + 190, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+                
+            }
+            
+            if(rtPopup != NULL){
+
+                SetWindowPos(rtPopup, NULL, getHwndPos(1) + 354, getHwndPos(2) + 230, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+                
             }
             break;
         }
@@ -143,11 +312,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     return 0;
 }
 
+// hmm either int main or WINAPI... WINAPI gives unused instances warnings.
 int WINAPI WinMain(HINSTANCE hInstance, 
                    HINSTANCE hPrevInstance,
                    LPSTR lpCmdLine, 
                    int nCmdShow) {
-    // Register window
+
+    // Register Main window
     WNDCLASS wc = {0};
     wc.lpfnWndProc = WndProc;
     wc.hInstance = GetModuleHandle(NULL);
@@ -160,7 +331,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
         return 0;
     }
 
-    // Create window
+    // Create Main window
     hwnd = CreateWindowEx(
         0,
         "gtClass",
@@ -192,6 +363,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
     return msg.wParam;
 }
 
+// Creates the Content in the Main Window (hwnd)
 int createMainContent(){
 
     INITCOMMONCONTROLSEX icex;
@@ -210,7 +382,7 @@ int createMainContent(){
 
     SendMessage(hListView, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
 
-    // Add columns
+    // Add columns 
     LVCOLUMN lvColumn = {0};
     lvColumn.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
     lvColumn.pszText = "NAME";
@@ -229,10 +401,11 @@ int createMainContent(){
     lvColumn.cx = 150;
     SendMessage(hListView, LVM_INSERTCOLUMN, 3, (LPARAM)&lvColumn);
 
-    // Add items
+    // Add items - TODO: Create function for adding items dynamicly
     LVITEM lvItem = {0};
     lvItem.mask = LVIF_TEXT;
-    lvItem.iItem = 0;
+    lvItem.iItem = currentListItems;
+    // removes dummies from here -->
     lvItem.iSubItem = 0;
     lvItem.pszText = "John";
     SendMessage(hListView, LVM_INSERTITEM, 0, (LPARAM)&lvItem);
@@ -242,12 +415,14 @@ int createMainContent(){
     SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
 
     lvItem.iSubItem = 2;
-    lvItem.pszText ="password1";
+    lvItem.pszText ="*******";
     SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
 
     lvItem.iSubItem = 3;
     lvItem.pszText ="GRANTED";
     SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
+
+    currentListItems++;
 
     lvItem.iItem = 1;
     lvItem.iSubItem = 0;
@@ -259,12 +434,14 @@ int createMainContent(){
     SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
 
     lvItem.iSubItem = 2;
-    lvItem.pszText = "password2";
+    lvItem.pszText = "*******";
     SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
 
     lvItem.iSubItem = 3;
     lvItem.pszText ="DENIED";
     SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
+
+    currentListItems++; // added until dummies are removed
 
     // Create buttons
     atBtn = CreateWindowEx(
@@ -274,6 +451,14 @@ int createMainContent(){
         WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
         640, 10, 130, 30,
         hwnd, (HMENU)1001, GetModuleHandle(NULL), NULL);
+
+    odBtn = CreateWindowEx(
+        0,
+        "BUTTON",
+        "OPEN DOOR",
+        WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+        640, 50, 130, 30,
+        hwnd, (HMENU)1012, GetModuleHandle(NULL), NULL);
 
     cnBtn = CreateWindowEx(
         0,
@@ -291,77 +476,67 @@ int createMainContent(){
         640, 130, 130, 30,
         hwnd, (HMENU)1003, GetModuleHandle(NULL), NULL);
 
-    cpBtn = CreateWindowEx(
-        0,
-        "BUTTON",
-        "CHANGE PASS",
-        WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-        640, 170, 130, 30,
-        hwnd, (HMENU)1004, GetModuleHandle(NULL), NULL);
-
     cacBtn = CreateWindowEx(
         0,
         "BUTTON",
         "CHANGE ACCESS",
         WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+        640, 170, 130, 30,
+        hwnd, (HMENU)1004, GetModuleHandle(NULL), NULL);
+
+    rtBtn = CreateWindowEx(
+        0,
+        "BUTTON",
+        "REMOVE TAG",
+        WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
         640, 210, 130, 30,
         hwnd, (HMENU)1005, GetModuleHandle(NULL), NULL);
 
-    // Disable inactive buttons to be activated later -->
+    // Disables "inactive" buttons to be activated later -->
     EnableWindow(cnBtn, FALSE);
     EnableWindow(cidBtn, FALSE);
-    EnableWindow(cpBtn, FALSE);
     EnableWindow(cacBtn, FALSE);
+    EnableWindow(rtBtn, FALSE);
 
     return 0;
 }
 
-int geHwndPos(int i){
+// Creates Popup Windows depending on i value 1 - 5
+void addPopup(int i){
 
-    RECT hwndRect;
-    GetWindowRect(hwnd, &hwndRect);
-
-    int parentX = hwndRect.left;
-    int parentY = hwndRect.top;
-
-    if(i == 1){
-        return parentX;
-    } else if (i == 2){
-        return parentY;
-    }else 
+// change from BOOL to int popupRegd = 0 -> if(popupRegd == 0) -> popupRegd++;
+    // Popup class registration
+    if(!popupRegd){
     
-    return 0;
-}
+    WNDCLASS wcPopup = {0};
+    wcPopup.lpfnWndProc = WndProc;
+    wcPopup.hInstance = GetModuleHandle(NULL);
+    wcPopup.hbrBackground = (HBRUSH)(COLOR_WINDOW + 2);
+    wcPopup.hCursor       = LoadCursor(NULL, IDC_ARROW);
+    wcPopup.lpszClassName = "popupClass";
 
-int addTagPopup(){
+    if (!RegisterClass(&wcPopup)) {
+        MessageBox(NULL, "AT Popup Registration Failed!", "Error", MB_ICONEXCLAMATION | MB_OK);
+    }
+    popupRegd = TRUE;
+    }
 
-
-
-        WNDCLASS wcPopup = {0};
-        wcPopup.lpfnWndProc = WndProc;
-        wcPopup.hInstance = GetModuleHandle(NULL);
-        wcPopup.hbrBackground = (HBRUSH)(COLOR_WINDOW + 2);
-        wcPopup.hCursor       = LoadCursor(NULL, IDC_ARROW);
-        wcPopup.lpszClassName = "popupClass";
-
-        if (!RegisterClass(&wcPopup)) {
-            MessageBox(NULL, "AT Popup Registration Failed!", "Error", MB_ICONEXCLAMATION | MB_OK);
-            
-        }
+    // Add Tag Popup --->
+    if(i == 1){
     
     atPopup = CreateWindowEx(
         0,
         "popupClass",
         "",
         WS_POPUP | WS_VISIBLE,
-        getHwndPos(1) + 355,
-        getHwndPos(2) + 30,
+        getHwndPos(1) + 354,
+        getHwndPos(2) + 36,
         260, 
-        200,
+        160,
         hwnd, NULL, GetModuleHandle(NULL), NULL);
     
     if (atPopup == NULL) {
-        MessageBox(NULL, "AT PopUp Creation Failed!", "Error", MB_ICONEXCLAMATION | MB_OK);
+        MessageBox(NULL, "Add Tag PopUp Creation Failed!", "Error", MB_ICONEXCLAMATION | MB_OK);
         
     }
 
@@ -381,7 +556,7 @@ int addTagPopup(){
         "",
         WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL, 
         70, 10, 180, 20, 
-        atPopup, (HMENU)IDC_EDIT_NAME, GetModuleHandle(NULL), NULL);
+        atPopup, (HMENU)IDC_EDIT_NAME_AT, GetModuleHandle(NULL), NULL);
             
     atComboBox = CreateWindowEx(0, 
         "COMBOBOX", 
@@ -391,8 +566,8 @@ int addTagPopup(){
         atPopup, (HMENU)IDC_COMBO_ROLE, GetModuleHandle(NULL), NULL);
 
         SendMessage(atComboBox, CB_ADDSTRING, 0, (LPARAM)"Employee");
+        SendMessage(atComboBox, CB_ADDSTRING, 0, (LPARAM)"Customer");
         SendMessage(atComboBox, CB_ADDSTRING, 0, (LPARAM)"Visitor");
-        SendMessage(atComboBox, CB_ADDSTRING, 0, (LPARAM)"Guest");
         SendMessage(atComboBox, CB_SETCURSEL, 0, 0);
 
     atRadioLabel = CreateWindow(
@@ -408,16 +583,16 @@ int addTagPopup(){
     atRadioTrue = CreateWindowEx(
         0, 
         "BUTTON", 
-        "True", 
+        "YES", 
         WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON, 
         90, 80, 60, 20, 
         atPopup, (HMENU)IDC_RADIO_TRUE, GetModuleHandle(NULL), NULL);
 
     atRadioFalse = CreateWindowEx(0, 
         "BUTTON", 
-        "False", 
+        "NO", 
         WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON, 
-        170, 80, 60, 20, 
+        160, 80, 50, 20, 
         atPopup, (HMENU)IDC_RADIO_FALSE, GetModuleHandle(NULL), NULL);
 
         SendMessage(atRadioTrue, BM_SETCHECK, BST_CHECKED, 0);
@@ -438,19 +613,424 @@ int addTagPopup(){
         "CANCEL", 
         WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 
         100, 120, 80, 30, 
-        atPopup, (HMENU)IDC_BUTTON_CANCEL, GetModuleHandle(NULL), NULL);
+        atPopup, (HMENU)AT_BUTTON_CANCEL, GetModuleHandle(NULL), NULL);
+
+    }// <--- Add Tag Popup
+    
+
+    // Change Name Popup --->
+        else if(i == 2){
+        
+        cnPopup = CreateWindowEx(
+        0,
+        "popupClass",
+        "",
+        WS_POPUP | WS_VISIBLE,
+        getHwndPos(1) + 354,
+        getHwndPos(2) + 110,
+        260, 
+        160,
+        hwnd, NULL, GetModuleHandle(NULL), NULL);
+    
+        if (cnPopup == NULL) {
+            MessageBox(NULL, "Name PopUp Creation Failed!", "Error", MB_ICONEXCLAMATION | MB_OK);
+            
+        }
+
+        cnCurrentNameLabel = CreateWindow(
+            "STATIC", 
+            " Current Name:", 
+            WS_VISIBLE | WS_CHILD,
+            10, 
+            10, 
+            250, 
+            20, 
+            cnPopup, NULL, NULL, NULL);
+
+
+        cnNewNameLabel = CreateWindow(
+            "STATIC", 
+            " New Name:", 
+            WS_VISIBLE | WS_CHILD,
+            10, 
+            60, 
+            90, 
+            20, 
+            cnPopup, NULL, NULL, NULL);
+
+        cnName = CreateWindowEx(
+            0,
+            "EDIT",
+            "",
+            WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL, 
+            90, 60, 170, 20, 
+            cnPopup, (HMENU)CN_EDIT_NAME, GetModuleHandle(NULL), NULL);
+
+        cnAddBtn = CreateWindowEx(
+        0, 
+        "BUTTON", 
+        "SAVE", 
+        WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 
+        10, 120, 80, 30, 
+        cnPopup, (HMENU)CN_BUTTON_SAVE, GetModuleHandle(NULL), NULL);
+
+        EnableWindow(cnAddBtn, FALSE);
+
+        cnCancelbtn = CreateWindowEx(
+            0, 
+            "BUTTON", 
+            "CANCEL", 
+            WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 
+            100, 120, 80, 30, 
+            cnPopup, (HMENU)CN_BUTTON_CANCEL, GetModuleHandle(NULL), NULL);
+        
+
+    }// <--- Change Name Popup
+    
+    // Change ID Popup --->
+    else if(i == 3){
+
+        cidPopup = CreateWindowEx(
+        0,
+        "popupClass",
+        "",
+        WS_POPUP | WS_VISIBLE,
+        getHwndPos(1) + 354,
+        getHwndPos(2) + 150,
+        260, 
+        160,
+        hwnd, NULL, GetModuleHandle(NULL), NULL);
+    
+        if (cidPopup == NULL) {
+            MessageBox(NULL, "ID PopUp Creation Failed!", "Error", MB_ICONEXCLAMATION | MB_OK);
+            
+        }
+
+        cidCurrentIdLabel = CreateWindow(
+            "STATIC", 
+            " Current ID:", 
+            WS_VISIBLE | WS_CHILD,
+            10, 
+            10, 
+            250, 
+            20, 
+            cidPopup, NULL, NULL, NULL);
+
+
+        cidNewIdLabel = CreateWindow(
+            "STATIC", 
+            " New ID:", 
+            WS_VISIBLE | WS_CHILD,
+            10, 
+            62, 
+            60, 
+            20, 
+            cidPopup, NULL, NULL, NULL);
+
+        cidComboBox = CreateWindowEx(0, 
+            "COMBOBOX", 
+            "", 
+            WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST, 
+            70, 60, 190, 150, 
+            cidPopup, (HMENU)CID_COMBO_ROLE, GetModuleHandle(NULL), NULL);
+
+            SendMessage(cidComboBox, CB_ADDSTRING, 0, (LPARAM)"Employee");
+            SendMessage(cidComboBox, CB_ADDSTRING, 0, (LPARAM)"Customer");
+            SendMessage(cidComboBox, CB_ADDSTRING, 0, (LPARAM)"Visitor");
+            SendMessage(cidComboBox, CB_SETCURSEL, 0, 0);
+
+        cidAddBtn = CreateWindowEx(
+            0, 
+            "BUTTON", 
+            "SAVE", 
+            WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 
+            10, 120, 80, 30, 
+            cidPopup, (HMENU)CN_BUTTON_SAVE, GetModuleHandle(NULL), NULL);
+
+        EnableWindow(cnAddBtn, FALSE);
+
+        cidCancelbtn = CreateWindowEx(
+            0, 
+            "BUTTON", 
+            "CANCEL", 
+            WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 
+            100, 120, 80, 30, 
+            cidPopup, (HMENU)CID_BUTTON_CANCEL, GetModuleHandle(NULL), NULL);
+
+    }// <--- Change ID Popup
+
+    // Change Access Popup --->
+    else if(i == 4){
+
+        caPopup = CreateWindowEx(
+        0,
+        "popupClass",
+        "",
+        WS_POPUP | WS_VISIBLE,
+        getHwndPos(1) + 354,
+        getHwndPos(2) + 190,
+        260, 
+        160,
+        hwnd, NULL, GetModuleHandle(NULL), NULL);
+    
+        if (caPopup == NULL) {
+            MessageBox(NULL, "Access PopUp Creation Failed!", "Error", MB_ICONEXCLAMATION | MB_OK);
+            
+        }
+
+        caCurrentAccessLabel = CreateWindow(
+            "STATIC", 
+            " Current Access:", 
+            WS_VISIBLE | WS_CHILD,
+            10, 
+            10, 
+            250, 
+            20, 
+            caPopup, NULL, NULL, NULL);
+
+        caNewAccessLabel = CreateWindow(
+            "STATIC", 
+            " Access:", 
+            WS_VISIBLE | WS_CHILD,
+            10, 
+            60, 
+            60, 
+            20, 
+            caPopup, NULL, NULL, NULL);
+
+        caRadioTrue = CreateWindowEx(
+            0, 
+            "BUTTON", 
+            "YES", 
+            WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON, 
+            90, 60, 60, 20, 
+            caPopup, (HMENU)CA_RADIO_TRUE, GetModuleHandle(NULL), NULL);
+
+        caRadioFalse = CreateWindowEx(0, 
+            "BUTTON", 
+            "NO", 
+            WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON, 
+            160, 60, 50, 20, 
+            caPopup, (HMENU)CA_RADIO_FALSE, GetModuleHandle(NULL), NULL);
+
+            SendMessage(atRadioTrue, BM_SETCHECK, BST_CHECKED, 0);
+
+        caAddBtn = CreateWindowEx(
+            0, 
+            "BUTTON", 
+            "SAVE", 
+            WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 
+            10, 120, 80, 30, 
+            caPopup, (HMENU)CA_BUTTON_SAVE, GetModuleHandle(NULL), NULL);
+
+            EnableWindow(cnAddBtn, FALSE);
+
+        caCancelbtn = CreateWindowEx(
+            0, 
+            "BUTTON", 
+            "CANCEL", 
+            WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 
+            100, 120, 80, 30, 
+            caPopup, (HMENU)CA_BUTTON_CANCEL, GetModuleHandle(NULL), NULL);
+
+    }// <--- Change Access Popup
+
+    //Remove Tag Popup --->
+    else if(i == 5){
+
+        rtPopup = CreateWindowEx(
+        0,
+        "popupClass",
+        "",
+        WS_POPUP | WS_VISIBLE,
+        getHwndPos(1) + 354,
+        getHwndPos(2) + 230,
+        260, 
+        160,
+        hwnd, NULL, GetModuleHandle(NULL), NULL);
+    
+        if (rtPopup == NULL) {
+            MessageBox(NULL, "Remove PopUp Creation Failed!", "Error", MB_ICONEXCLAMATION | MB_OK);
+            
+        }
+
+        rtSelectedNameLabel = CreateWindow(
+            "STATIC", 
+            " Selected Name:", 
+            WS_VISIBLE | WS_CHILD,
+            10, 
+            10, 
+            250, 
+            20, 
+            rtPopup, NULL, NULL, NULL);
+        
+        rtSelectedIdLabel = CreateWindow(
+            "STATIC", 
+            " Selected ID:", 
+            WS_VISIBLE | WS_CHILD,
+            10, 
+            40, 
+            250, 
+            20, 
+            rtPopup, NULL, NULL, NULL);
+
+        rtSelectedAccessLabel = CreateWindow(
+            "STATIC", 
+            " Selected Access:", 
+            WS_VISIBLE | WS_CHILD,
+            10, 
+            70, 
+            250, 
+            20, 
+            rtPopup, NULL, NULL, NULL);
+
+        rtRemoveBtn = CreateWindowEx(
+            0, 
+            "BUTTON", 
+            "REMOVE", 
+            WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 
+            10, 120, 80, 30, 
+            rtPopup, (HMENU)RT_BUTTON_REMOVE, GetModuleHandle(NULL), NULL);
+
+            EnableWindow(cnAddBtn, FALSE);
+
+        rtCancelbtn = CreateWindowEx(
+            0, 
+            "BUTTON", 
+            "CANCEL", 
+            WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 
+            100, 120, 80, 30, 
+            rtPopup, (HMENU)RT_BUTTON_CANCEL, GetModuleHandle(NULL), NULL);
+
+    }// <--- Remove Tag Popup
+}
+
+// extra functions --->
+
+// Gets Parent Window position (Main Window/hwnd)
+int getHwndPos(int i){
+
+    RECT hwndRect;
+    GetWindowRect(hwnd, &hwndRect);
+
+    int parentX = hwndRect.left;
+    int parentY = hwndRect.top;
+
+    if(i == 1){
+        return parentX;
+    } else if (i == 2){
+        return parentY;
+    }else 
     
     return 0;
 }
 
-int changeNamePopup(){
+// disables all button ---> temp function, not used
+void disableAllButtons(){
+    EnableWindow(cnBtn, FALSE);
+    EnableWindow(cidBtn, FALSE);
+    EnableWindow(rtBtn, FALSE);
+    EnableWindow(cacBtn, FALSE);
+    EnableWindow(atBtn, FALSE);
+    EnableWindow(odBtn, FALSE);
+}
+
+// enables all button ---> temp function, not used
+void enableAllButtons(){
+    EnableWindow(cnBtn, TRUE);
+    EnableWindow(cidBtn, TRUE);
+    EnableWindow(rtBtn, TRUE);
+    EnableWindow(cacBtn, TRUE);
+    EnableWindow(atBtn, TRUE);
+    EnableWindow(odBtn, TRUE);
+}
+
+void addListItems(){
+    //TODO'S: Use malloc on all temp variables --->
+    
+    // fetch name from add popup
+    char listName[256];
+    GetWindowText(atName, listName, sizeof(listName));
+
+    //fetch choosen value in combobox from add popup
+    int comboIndex = SendMessage(atComboBox, CB_GETCURSEL, 0,0);
+    char idsBuffer[10];
+    SendMessage(atComboBox, CB_GETLBTEXT, comboIndex, (LPARAM)idsBuffer);
+    char listIdS = toupper(idsBuffer[0]);
+
+    // checks for available ID number
+    int listIdD = checkId();   
+
+    // create new pass and check if it exists in the array
+    char listPass[17] = randomPass();
+    if(checkPass()){
+
+    }
+
+    //checks which true/false radio button is selected
+    int listAccess;
+    char sListAccess[8];
+
+    BOOL isTrueChecked = SendMessage(atRadioTrue, BM_GETCHECK, 0,0) == BST_CHECKED;
+    BOOL isFalseChecked = SendMessage(atRadioFalse, BM_GETCHECK, 0, 0) == BST_CHECKED;
+
+    if(isTrueChecked){
+        listAccess = 0;
+        strcpy(sListAccess, "GRANTED");
+    }
+    else if(isFalseChecked){
+        listAccess = 1;
+        strcpy(sListAccess, "DENIED");
+    }
+    
+    
+
+    // adds a new list item with gathered values and new tag in array
+    if(listName != NULL && listIdS != NULL && listIdS != NULL && listIdD > 0 && listPass != NULL && sListAccess != NULL){
+
+        // send values to create new tag in array
+        //newTag(listName, listIds, listIdD, listPass, listAccess); to send to array list
+
+        int currentListSubItem = 0;
+
+        lvItem.iItem = currentListItems;
+        lvItem.iSubItem = currentListSubItem;
+        lvItem.pszText = listName;
+        SendMessage(hListView, LVM_INSERTITEM, 0, (LPARAM)&lvItem);
+        currentListSubItem++;
+
+        lvItem.iSubItem = currentListSubItem;
+        lvItem.pszText = listIdS+listIdD;
+        SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
+        currentListSubItem++;
+
+        lvItem.iSubItem = currentListSubItem;
+        lvItem.pszText = listPass;
+        SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
+        currentListSubItem++;
+
+        lvItem.iSubItem = currentListSubItem;
+        lvItem.pszText = sListAccess;
+        SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
+        currentListSubItem = 0;
+
+        currentListItems++;
+        
+    }else{
+        //something went bananas
+        // TODO: add error handling above?
+    }
+    
+}
+
+void retrieveListItems(){
 
 }
 
-int changeIdPopup(){
+void addListTag(){
 
 }
 
-int changeAccessPopup(){
+void createPass(){
 
 }
