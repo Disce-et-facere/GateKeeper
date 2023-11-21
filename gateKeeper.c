@@ -1,29 +1,4 @@
-#include <windows.h>
-#include <commctrl.h>
-#include "tagHandler.h"
-// removed stdbool header since BOOL exists in windows header
-
-#define TIMER_ENABLE_BUTTONS 1
-#define BUTTON_ENABLE_DELAY 100
-#define IDC_EDIT_NAME_AT    1006
-#define IDC_COMBO_ROLE      1007
-#define IDC_RADIO_TRUE      1008
-#define IDC_RADIO_FALSE     1009
-#define IDC_BUTTON_ADD      1010
-#define AT_BUTTON_CANCEL    1011
-#define CN_EDIT_NAME        1012
-#define CN_BUTTON_SAVE      1013
-#define CN_BUTTON_CANCEL    1014
-#define CID_COMBO_ROLE      1015
-#define CID_BUTTON_SAVE     1016
-#define CID_BUTTON_CANCEL   1017
-#define CA_RADIO_TRUE       1018
-#define CA_RADIO_FALSE      1019
-#define CA_BUTTON_SAVE      1020
-#define CA_BUTTON_CANCEL    1021
-#define RT_BUTTON_REMOVE    1022
-#define RT_BUTTON_CANCEL    1023
-
+#include "gateKeeper.h"
 
     // Main Window (hwnd) -->
     HWND hwnd;
@@ -83,7 +58,7 @@
     LVITEM lvItem;
   
 BOOL popupRegd = FALSE; // maybe not needed as global?
-size_t currentListItems = 0;
+int currentListItems = 0;
 
 // TODO'S: Before user press the add button in the add tag popup, ask to scan tag before adding -> add after arduino setup
 //         Create function to add new tags/cards in the list. and remove the current dummies.
@@ -95,6 +70,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
     switch (msg) {
     
+
         // Handle pressed buttons
         case WM_COMMAND:
         {
@@ -168,6 +144,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                             //disableAllButtons();
                             break;
                         }
+                        break;
+                    }
+                    case 1012:
+                    {
+                        fileReader();
+                        //onExit();
+                        break;
+                    }
+                    case AT_BUTTON_ADD:
+                    {
+                        userALI();
+                        ShowWindow(atPopup, SW_HIDE);
+                        SetWindowText(atName, "");
                         break;
                     }
                     case AT_BUTTON_CANCEL:
@@ -302,6 +291,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         
         case WM_DESTROY:
         {
+            //arrayHandler(tag, 9, -1);
             PostQuitMessage(0);
             break;
         }    
@@ -424,7 +414,7 @@ int createMainContent(){
 
     currentListItems++;
 
-    lvItem.iItem = 1;
+    lvItem.iItem = currentListItems;
     lvItem.iSubItem = 0;
     lvItem.pszText = "Jane";
     SendMessage(hListView, LVM_INSERTITEM, 0, (LPARAM)&lvItem);
@@ -603,7 +593,7 @@ void addPopup(int i){
         "ADD", 
         WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 
         10, 120, 80, 30, 
-        atPopup, (HMENU)IDC_BUTTON_ADD, GetModuleHandle(NULL), NULL);
+        atPopup, (HMENU)AT_BUTTON_ADD, GetModuleHandle(NULL), NULL);
 
     EnableWindow(atAddBtn, FALSE);
 
@@ -945,92 +935,171 @@ void enableAllButtons(){
     EnableWindow(odBtn, TRUE);
 }
 
-void addListItems(){
-    //TODO'S: Use malloc on all temp variables --->
+void userALI(){ // user add list item <---
     
     // fetch name from add popup
     char listName[256];
-    GetWindowText(atName, listName, sizeof(listName));
+    // add check if atName windowtext <= 255
+    GetWindowText(atName, listName, sizeof(listName)-1);
+    listName[sizeof(listName) - 1] = '\0'; 
 
     //fetch choosen value in combobox from add popup
-    int comboIndex = SendMessage(atComboBox, CB_GETCURSEL, 0,0);
+    int comboIndex = (int)SendMessage(atComboBox, CB_GETCURSEL, 0,0);
     char idsBuffer[10];
-    SendMessage(atComboBox, CB_GETLBTEXT, comboIndex, (LPARAM)idsBuffer);
-    char listIdS = toupper(idsBuffer[0]);
+    SendMessage(atComboBox, CB_GETLBTEXT, (WPARAM)comboIndex, (LPARAM)idsBuffer);
+    char listIdS[2];
+    listIdS[0] = (char)toupper(idsBuffer[0]);
+    listIdS[1] = '\0';
 
     // checks for available ID number
-    int listIdD = checkId();   
+    int listIdD = asignIdD();   
 
     // create new pass and check if it exists in the array
-    char listPass[17] = randomPass();
-    if(checkPass()){
+    char listPass[17];
+    char *tempPass;
+    BOOL passExist = 1;
+    
+    do{
 
-    }
+        tempPass = randomPass();
+        passExist = checkPass(tempPass);
+
+    }while(passExist); // if passexist is 1  continue loop and exit loop when passExist is 0
+
+    strcpy(listPass, tempPass);
+
+    free(tempPass);
 
     //checks which true/false radio button is selected
-    int listAccess;
     char sListAccess[8];
+    int listAccess;
 
     BOOL isTrueChecked = SendMessage(atRadioTrue, BM_GETCHECK, 0,0) == BST_CHECKED;
     BOOL isFalseChecked = SendMessage(atRadioFalse, BM_GETCHECK, 0, 0) == BST_CHECKED;
 
     if(isTrueChecked){
-        listAccess = 0;
+        
         strcpy(sListAccess, "GRANTED");
+        listAccess = 0;
+
     }
     else if(isFalseChecked){
-        listAccess = 1;
-        strcpy(sListAccess, "DENIED");
-    }
-    
-    
-
-    // adds a new list item with gathered values and new tag in array
-    if(listName != NULL && listIdS != NULL && listIdS != NULL && listIdD > 0 && listPass != NULL && sListAccess != NULL){
-
-        // send values to create new tag in array
-        //newTag(listName, listIds, listIdD, listPass, listAccess); to send to array list
-
-        int currentListSubItem = 0;
-
-        lvItem.iItem = currentListItems;
-        lvItem.iSubItem = currentListSubItem;
-        lvItem.pszText = listName;
-        SendMessage(hListView, LVM_INSERTITEM, 0, (LPARAM)&lvItem);
-        currentListSubItem++;
-
-        lvItem.iSubItem = currentListSubItem;
-        lvItem.pszText = listIdS+listIdD;
-        SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
-        currentListSubItem++;
-
-        lvItem.iSubItem = currentListSubItem;
-        lvItem.pszText = listPass;
-        SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
-        currentListSubItem++;
-
-        lvItem.iSubItem = currentListSubItem;
-        lvItem.pszText = sListAccess;
-        SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
-        currentListSubItem = 0;
-
-        currentListItems++;
         
-    }else{
-        //something went bananas
-        // TODO: add error handling above?
+        strcpy(sListAccess, "DENIED");
+        listAccess = 1;
     }
+    
+    // adds a new list item with gathered values
+    int currentListSubItem = 0;
+
+    LVITEM lvItem = {0};
+    lvItem.mask = LVIF_TEXT;
+
+    lvItem.iItem = currentListItems;
+    lvItem.iSubItem = currentListSubItem;
+    lvItem.pszText = listName;
+    SendMessage(hListView, LVM_INSERTITEM, 0, (LPARAM)&lvItem);
+
+    currentListSubItem++;
+
+    // converts int to char and adds the chars together
+    char idSidD[256];
+    sprintf(idSidD, "%s%d", listIdS, listIdD);
+    idSidD[sizeof(idSidD)-1] = '\0';
+
+    lvItem.iSubItem = currentListSubItem;
+    lvItem.pszText = idSidD;
+    SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
+
+    currentListSubItem++;
+
+    lvItem.iSubItem = currentListSubItem;
+    lvItem.pszText = listPass;
+    SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
+
+    currentListSubItem++;
+
+    lvItem.iSubItem = currentListSubItem;
+    lvItem.pszText = sListAccess;
+    SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
+
+    currentListSubItem = 0;
+
+    currentListItems++;
+
+
+    
+    // put value in a tag and send to newTag();
+    TAG tag;
+
+    strncpy(tag.name, listName, sizeof(tag.name) - 1);
+    tag.name[sizeof(tag.name) - 1] = '\0'; 
+
+    strncpy(tag.idS, listIdS, sizeof(tag.idS) - 1);
+    tag.idS[sizeof(tag.idS) - 1] = '\0'; 
+
+    tag.idD = listIdD;
+
+    strncpy(tag.pass, listPass, sizeof(tag.pass) - 1);
+    tag.pass[sizeof(tag.pass) - 1] = '\0';
+
+    tag.access = listAccess;
+
+    int direction = 0;
+
+    newTag(&tag, &direction);
     
 }
 
-void retrieveListItems(){
+void fileALI(TAG *tag){ // adds list item from file
 
-}
+    int currentListSubItem = 0;
 
-void addListTag(){
+    LVITEM lvItem = {0};
+    lvItem.mask = LVIF_TEXT;
 
-}
+    lvItem.iItem = currentListItems;
+    lvItem.iSubItem = currentListSubItem;
+    lvItem.pszText = tag->name;
+    SendMessage(hListView, LVM_INSERTITEM, 0, (LPARAM)&lvItem);
 
-void createPass(){
+    currentListSubItem++;
+
+    // converts int to char and adds the chars together
+    char idSidD[256];
+    sprintf(idSidD, "%s%d", tag->idS, tag->idD);
+    idSidD[sizeof(idSidD)-1] = '\0';
+
+    lvItem.iSubItem = currentListSubItem;
+    lvItem.pszText = idSidD;
+    SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
+
+    currentListSubItem++;
+
+    lvItem.iSubItem = currentListSubItem;
+    lvItem.pszText = tag->pass;
+    SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
+
+    currentListSubItem++;
+
+    char sListAccess[8];
+        if(tag->access == 0){
+        
+            strcpy(sListAccess, "GRANTED");
+            sListAccess[7] = '\0';
+        }
+        else if(tag->access == 1){
+            
+            strcpy(sListAccess, "DENIED");
+            sListAccess[7] = '\0';
+        }
+
+    lvItem.iSubItem = currentListSubItem;
+    lvItem.pszText = sListAccess;
+    SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
+
+    currentListSubItem = 0;
+
+    currentListItems++;
 
 }

@@ -1,56 +1,77 @@
 #include "fileHandler.h"
-#include <stdio.h>
 
-int fileReader(int i) {
+int fileReader() {
 
     FILE *tagFile;
-    tagFile = fopen("tags.txt", "r");
-    char buffer[256];  // <---use malloc ?
+    int direction = 1;
 
-    if (tagFile == NULL) {
+    if (tagFile != NULL) {
 
-        perror("Error opening file");
-        return 1;
+        TAG tag;
 
-    }else{
+        tagFile = fopen("tags.txt", "r");
 
-        if(i == 0){ // check if tags exist in file, obselete since we already check if file isempty
-
-
-
-
-        }else if(i == 1){ // files exist start sending tags  
-
-            //TODO: add setup for splitting each line into its parts 
-            while (fgets(buffer, sizeof(buffer), tagFile) != NULL) {
-            // rewrite for one line at a time
-
-            }
+        while(fscanf(tagFile, "%255s %1s %d %16s %d", tag.name, tag.idS, &tag.idD, tag.pass, &tag.access) == 5){
+            
+            newTag(&tag, &direction);
 
         }
-    
-    }
 
-    fclose(tagFile);
+        fclose(tagFile);
+        return 0; // not needed? good for something? :P
+        
+    }else{ 
+        
+        perror("Error opening file/ READ");
+        return -1;
 
+    } 
+
+}
+
+int fileWriter(TAG *tag) { // add new tags to file
+
+    FILE *tagFile;
+
+    if (tagFile != NULL) {
+        
+        tagFile = fopen("tags.txt", "a");
+
+        fprintf(tagFile, "%s %s %d %s %d\n", tag->name, tag->idS, tag->idD, tag->pass, tag->access);
+
+        fclose(tagFile);
+
+    } else {
+
+        perror("Error opening file/ APPEND");
+        return -1;
+
+    } 
     return 0;
 }
 
-int fileWriter() { // add new tags to file
-    FILE *tagFile;
+int isFileEmpty(){
 
-    
-    tagFile = fopen("example.txt", "w");
+    FILE *tagsFile = fopen("tags.txt", "r");
 
-    if (tagFile == NULL) {
+    if (tagsFile == NULL) {
         perror("Error opening file");
-        return 1;
+        return -1; 
     }
 
-    fprintf(tagFile, "Hello, World!\n");
+    fseek(tagsFile, 0, SEEK_END);  
+    long fileSize = ftell(tagsFile); 
 
+    fclose(tagsFile);
 
-    fclose(tagFile);
+    if (fileSize == 0) {
+        return 0; // File is empty
+    } else {
+        return 1; // File is not empty
+    }
 
-    return 0;
+}
+
+void changeInFile(){
+
 }

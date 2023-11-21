@@ -38,6 +38,11 @@
         "*.rh": "c",
         "taghandler.h": "c",
         "fileHandler.h": "c",
-        "gateKeeper.h": "c"
+        "gateKeeper.h": "c",
+        "randomPass.h": "c",
+        "typeinfo": "c",
+        "windows.h": "c",
+        "stdio.h": "c",
+        "string.h": "c"
     }
 }
