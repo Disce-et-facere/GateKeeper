@@ -4,10 +4,9 @@ int arrayHandler(TAG *tag, int option, int *direction){
 
     static TAG *tags = NULL;
     static int tagCount = 0;
-    static int availableIdD = 1;
 
     if(option == 0){ // option = 0 adds tags
-        if(tagCount == 0){ // if file is empty -> malloc
+        if(tagCount == 0){ //  -> malloc
 
             tags = malloc(sizeof(TAG)); 
 
@@ -29,35 +28,23 @@ int arrayHandler(TAG *tag, int option, int *direction){
 
             tags[tagCount].access = tag->access;
 
-            if(*direction == 0){ // Segmentation fault here!!!
+            if(*direction == 0){
 
                 fileWriter(tag);
 
             }else if(*direction == 1){
 
                 fileALI(tag);
-                availableIdD++;
 
             }
             
             tagCount++;
-            printf("%d",tagCount);
-            printf("%d", availableIdD);
-            for (int i = 0; i < tagCount; i++) {
-            printf("Element %zu:\n", i);
-            printf("  Name: %s\n", tags[i].name);
-            printf("  idS: %s\n", tags[i].idS);
-            printf("  idD: %d\n", tags[i].idD);
-            printf("  Pass: %s\n", tags[i].pass);
-            printf("  Access: %d\n", tags[i].access);
-            printf("\n");
-            }
 
         } else { // if tags exists in file -> realloc
 
             tags = realloc(tags, sizeof(TAG) * tagCount + 1);
 
-            if (tags == NULL) {
+            if (tags == NULL) {  //this will never be true after malloc!!!
             fprintf(stderr, "Memory reallocation failed.\n");
             exit(EXIT_FAILURE); // to harsh maybe? 
             }
@@ -75,6 +62,15 @@ int arrayHandler(TAG *tag, int option, int *direction){
 
             tags[tagCount].access = tag->access;
 
+            
+                printf("Element %d:\n", 2);
+                printf("  Name: %s\n", tags[1].name);
+                printf("  idS: %s\n", tags[1].idS);
+                printf("  idD: %d\n", tags[1].idD);
+                printf("  Pass: %s\n", tags[1].pass);
+                printf("  Access: %d\n", tags[1].access);
+                printf("\n");
+            
 
             if(*direction == 0){
 
@@ -83,38 +79,27 @@ int arrayHandler(TAG *tag, int option, int *direction){
             }else if(*direction == 1){
 
                 fileALI(tag);
-                availableIdD++;
             }
 
             tagCount++;
-            printf("%d",tagCount);
-            printf("%d", availableIdD);
-            for (int i = 0; i < tagCount; i++) {
-            printf("Element %zu:\n", i);
-            printf("  Name: %s\n", tags[i].name);
-            printf("  idS: %s\n", tags[i].idS);
-            printf("  idD: %d\n", tags[i].idD);
-            printf("  Pass: %s\n", tags[i].pass);
-            printf("  Access: %d\n", tags[i].access);
-            printf("\n");
-            }
         }
+    
     }else if(option == 1){ // option = 1 make changes in tag
 
 
 
     }else if(option == 2){ // option = 2 Check array for avaliable idD
         
+        int availableIdD = 1;
+
         if(tagCount == 0){
-            availableIdD++;
-            printf("%d", availableIdD); 
+
             return 1;
            
         }else{
-            printf("%d",sizeof(tags[0])); 
-            printf("%d\n",tags[0].idD); 
-            printf("%d\n", availableIdD);
+          
             int i = 0;
+
             while(i < tagCount){
                     
                     if(tags[i].idD == availableIdD){ 
@@ -136,7 +121,7 @@ int arrayHandler(TAG *tag, int option, int *direction){
 
         }else{  // if tags exists check if current pass exists
 
-            for(size_t i = 0; i < tagCount; i++){
+            for(int i = 0; i < tagCount; i++){
 
                 if(strcmp(tags[i].pass, tag->pass) == 0){
 
@@ -179,7 +164,7 @@ void newTag(TAG *tag, int *direction){ // from user dir 0, from file dir 1
 int asignIdD(){
 
     TAG tag;
-    int direction = -1;
+    int direction = 3; // 3 isnt used -> leads nowhere
 
     int newIdD = arrayHandler(&tag, 2, &direction);
 
@@ -188,12 +173,13 @@ int asignIdD(){
 
 int checkPass(char tPass[17]){
     TAG tag;
+    int direction = 3;
 
     strncpy(tag.pass, tPass, sizeof(tag.pass) - 1);
     tag.pass[sizeof(tag.pass) - 1] = '\0';
 
      
-    if(arrayHandler(&tag, 3 , -1) == 0){
+    if(arrayHandler(&tag, 3 , &direction) == 0){
 
         return 0;
         
@@ -204,7 +190,8 @@ int checkPass(char tPass[17]){
 
 void onExit(){
     TAG tag;
-    arrayHandler(&tag, 9, -1);
+    int direction = 3;
+    arrayHandler(&tag, 9, &direction);
 }
 
 // Reads tags from file
@@ -214,25 +201,34 @@ int fileReader() {
     int direction = 1;
 
     if (tagFile != NULL) {
+        char line[256]; // Adjust the buffer size as needed
 
-        TAG tag;
+        while (fgets(line, sizeof(line), tagFile) != NULL) {
+            // Check for an empty line
+            if (strcmp(line, "\n") == 0 || strcmp(line, "\r\n") == 0) {
+                continue;  // Skip empty lines
+            }
 
-        while(fscanf(tagFile, "%255[^,], %1s %d %16s %d", tag.name, tag.idS, &tag.idD, tag.pass, &tag.access) == 5){
-            
-            newTag(&tag, &direction);
+            TAG tag;
 
+            // Use sscanf to parse the content of the line
+            if (sscanf(line, "%255[^,], %1s %d %16s %d", tag.name, tag.idS, &tag.idD, tag.pass, &tag.access) == 5) {
+                // Process the tag
+                newTag(&tag, &direction);
+            } else {
+                fprintf(stderr, "Error parsing line: %s\n", line);
+                // Handle the error if needed
+            }
         }
 
-        fclose(tagFile);
-        return 0; // not needed? good for something? :P
         
-    }else{ 
-        
+        return 0;
+    } else {
         perror("Error opening file/ READ");
         return -1;
+    }
 
-    } 
-
+    fclose(tagFile);
 }
 
 // saves tag to file
@@ -244,7 +240,7 @@ int fileWriter(TAG *tag) { // add new tags to file
 
         fprintf(tagFile, "%s, %s %d %s %d\n", tag->name, tag->idS, tag->idD, tag->pass, tag->access);
 
-        fclose(tagFile);
+        
 
     } else {
 
@@ -252,6 +248,8 @@ int fileWriter(TAG *tag) { // add new tags to file
         return -1;
 
     } 
+
+    fclose(tagFile);
     return 0;
 }
 
@@ -268,12 +266,12 @@ int isFileEmpty(){
     fseek(tagsFile, 0, SEEK_END);  
     long fileSize = ftell(tagsFile); 
 
-    fclose(tagsFile);
+    
 
     if (fileSize == 0) {
         return 0; // File is empty
     } else {
         return 1; // File is not empty
     }
-
+fclose(tagsFile);
 }

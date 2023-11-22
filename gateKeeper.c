@@ -291,7 +291,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         
         case WM_DESTROY:
         {
-            //arrayHandler(tag, 9, -1);
+            onExit();
             PostQuitMessage(0);
             break;
         }    
