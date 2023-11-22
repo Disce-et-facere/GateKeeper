@@ -1,11 +1,8 @@
 #include "tagHandler.h"
 
-// DO NOT RUN YET !
-// since free() function isnt implemented and would cause memory leaks
-
 int arrayHandler(TAG *tag, int option, int *direction){
 
-    TAG *tags = NULL;
+    static TAG *tags = NULL;
     static int tagCount = 0;
     static int availableIdD = 1;
 
@@ -110,17 +107,17 @@ int arrayHandler(TAG *tag, int option, int *direction){
         
         if(tagCount == 0){
             availableIdD++;
-            printf("%d", availableIdD);
+            printf("%d", availableIdD); 
             return 1;
            
         }else{
-            printf("%d",sizeof(tags[0]));
-            printf("%d\n",tags[0].idD);
+            printf("%d",sizeof(tags[0])); 
+            printf("%d\n",tags[0].idD); // segfault ?!
             printf("%d\n", availableIdD);
             int i = 0;
             while(i < tagCount){
                     
-                    if(tags[i].idD == availableIdD){
+                    if(tags[i].idD == availableIdD){ //segfault ?!
                         availableIdD++;
                         i = 0;
                     }else{
