@@ -112,12 +112,12 @@ int arrayHandler(TAG *tag, int option, int *direction){
            
         }else{
             printf("%d",sizeof(tags[0])); 
-            printf("%d\n",tags[0].idD); // segfault ?!
+            printf("%d\n",tags[0].idD); 
             printf("%d\n", availableIdD);
             int i = 0;
             while(i < tagCount){
                     
-                    if(tags[i].idD == availableIdD){ //segfault ?!
+                    if(tags[i].idD == availableIdD){ 
                         availableIdD++;
                         i = 0;
                     }else{
