@@ -6,7 +6,7 @@
 #include <string.h>
 #include "gateKeeper.h"
 
-typedef struct {
+typedef struct TAG{
     char name[256];  // ex alex 
     char idS[2];     // ex C = customer V = Visitor E = Employee
     int idD;         // ex 1,2,3,4 -> etc

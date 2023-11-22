@@ -6,8 +6,8 @@
 int arrayHandler(TAG *tag, int option, int *direction){
 
     TAG *tags = NULL;
-    static size_t tagCount = 0;
-    size_t availableIdD = 1;
+    static int tagCount = 0;
+    static int availableIdD = 1;
 
     if(option == 0){ // option = 0 adds tags
         if(tagCount == 0){ // if file is empty -> malloc
@@ -39,12 +39,22 @@ int arrayHandler(TAG *tag, int option, int *direction){
             }else if(*direction == 1){
 
                 fileALI(tag);
+                availableIdD++;
 
             }
             
             tagCount++;
             printf("%d",tagCount);
-            
+            printf("%d", availableIdD);
+            for (int i = 0; i < tagCount; i++) {
+            printf("Element %zu:\n", i);
+            printf("  Name: %s\n", tags[i].name);
+            printf("  idS: %s\n", tags[i].idS);
+            printf("  idD: %d\n", tags[i].idD);
+            printf("  Pass: %s\n", tags[i].pass);
+            printf("  Access: %d\n", tags[i].access);
+            printf("\n");
+            }
 
         } else { // if tags exists in file -> realloc
 
@@ -76,12 +86,21 @@ int arrayHandler(TAG *tag, int option, int *direction){
             }else if(*direction == 1){
 
                 fileALI(tag);
-
+                availableIdD++;
             }
 
             tagCount++;
             printf("%d",tagCount);
-            
+            printf("%d", availableIdD);
+            for (int i = 0; i < tagCount; i++) {
+            printf("Element %zu:\n", i);
+            printf("  Name: %s\n", tags[i].name);
+            printf("  idS: %s\n", tags[i].idS);
+            printf("  idD: %d\n", tags[i].idD);
+            printf("  Pass: %s\n", tags[i].pass);
+            printf("  Access: %d\n", tags[i].access);
+            printf("\n");
+            }
         }
     }else if(option == 1){ // option = 1 make changes in tag
 
@@ -90,24 +109,23 @@ int arrayHandler(TAG *tag, int option, int *direction){
     }else if(option == 2){ // option = 2 Check array for avaliable idD
         
         if(tagCount == 0){
-
+            availableIdD++;
+            printf("%d", availableIdD);
             return 1;
-
+           
         }else{
-
-            size_t i = 0;
+            printf("%d",sizeof(tags[0]));
+            printf("%d\n",tags[0].idD);
+            printf("%d\n", availableIdD);
+            int i = 0;
             while(i < tagCount){
-
-                if(tags != NULL){
-
+                    
                     if(tags[i].idD == availableIdD){
                         availableIdD++;
                         i = 0;
                     }else{
                         i++;
                     }
-                }
-                i++;
             }
 
             return availableIdD;
