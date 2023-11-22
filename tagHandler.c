@@ -201,23 +201,23 @@ int fileReader() {
     int direction = 1;
 
     if (tagFileR != NULL) {
-        char line[256]; // Adjust the buffer size as needed
+        char line[256]; 
 
         while (fgets(line, sizeof(line), tagFileR) != NULL) {
             // Check for an empty line
             if (strcmp(line, "\n") == 0 || strcmp(line, "\r\n") == 0) {
-                continue;  // Skip empty lines
+                continue;  
             }
 
             TAG tag;
 
-            // Use sscanf to parse the content of the line
+            
             if (sscanf(line, "%255[^,], %1s %d %16s %d", tag.name, tag.idS, &tag.idD, tag.pass, &tag.access) == 5) {
                 // Process the tag
                 newTag(&tag, &direction);
             } else {
                 fprintf(stderr, "Error parsing line: %s\n", line);
-                // Handle the error if needed
+                
             }
         }
 
@@ -243,10 +243,10 @@ int fileWriter(TAG *tag) { // add new tags to file
 
     if (tagFileW != NULL) {
     fputs(tag->name, tagFileW);
-    putc(',', tagFileW);
+    fputs(",", tagFileW);
     fputs(" ", tagFileW);
     fputs(tag->idS, tagFileW);
-    putc(' ', tagFileW);
+    fputs(" ", tagFileW);
     fprintf(tagFileW, "%d ", tag->idD);
     fputs(tag->pass, tagFileW);
     fprintf(tagFileW, " %d\n", tag->access);
