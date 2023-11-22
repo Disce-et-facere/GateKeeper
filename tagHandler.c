@@ -40,13 +40,13 @@ int arrayHandler(TAG *tag, int option, int *direction){
             
             tagCount++;
 
-        } else { // if tags exists in file -> realloc
+        } else { // if tags exists -> realloc
 
             tags = realloc(tags, sizeof(TAG) * tagCount + 1);
 
-            if (tags == NULL) {  //this will never be true after malloc!!!
+            if (tags == NULL) {  
             fprintf(stderr, "Memory reallocation failed.\n");
-            exit(EXIT_FAILURE); // to harsh maybe? 
+            exit(EXIT_FAILURE); 
             }
 
             strncpy(tags[tagCount].name, tag->name, sizeof(tags[tagCount].name));
@@ -115,7 +115,7 @@ int arrayHandler(TAG *tag, int option, int *direction){
 
     }else if(option == 3){ // checks if new password exists
 
-        if(tags == NULL){ // if there is no tags return 0 since there is no current passwords
+        if(tagCount == 0){ // if there is no tags return 0 since there is no current passwords
 
             return 0;
 
@@ -197,13 +197,13 @@ void onExit(){
 // Reads tags from file
 int fileReader() {
 
-    FILE *tagFile = fopen("tags.txt", "r");
+    FILE *tagFileR = fopen("tags.txt", "r");
     int direction = 1;
 
-    if (tagFile != NULL) {
+    if (tagFileR != NULL) {
         char line[256]; // Adjust the buffer size as needed
 
-        while (fgets(line, sizeof(line), tagFile) != NULL) {
+        while (fgets(line, sizeof(line), tagFileR) != NULL) {
             // Check for an empty line
             if (strcmp(line, "\n") == 0 || strcmp(line, "\r\n") == 0) {
                 continue;  // Skip empty lines
@@ -221,50 +221,74 @@ int fileReader() {
             }
         }
 
-        
+        fclose(tagFileR);
         return 0;
     } else {
         perror("Error opening file/ READ");
         return -1;
     }
 
-    fclose(tagFile);
+    
 }
 
 // saves tag to file
 int fileWriter(TAG *tag) { // add new tags to file
 
-    FILE *tagFile = fopen("tags.txt", "a");
+    FILE *tagFileW = fopen("tags.txt", "a");
 
-    if (tagFile != NULL) {
+    if (tagFileW == NULL) {
+    perror("Error opening file for writing");
+    return -1;
+    }
 
-        fprintf(tagFile, "%s, %s %d %s %d\n", tag->name, tag->idS, tag->idD, tag->pass, tag->access);
+    if (tagFileW != NULL) {
+    fputs(tag->name, tagFileW);
+    putc(',', tagFileW);
+    fputs(" ", tagFileW);
+    fputs(tag->idS, tagFileW);
+    putc(' ', tagFileW);
+    fprintf(tagFileW, "%d ", tag->idD);
+    fputs(tag->pass, tagFileW);
+    fprintf(tagFileW, " %d\n", tag->access);
+    fclose(tagFileW);
+    } else {
+        perror("Error opening file/APPEND");
+        return -1;
+    }
 
-        
+    /*
+    if (tagFileW != NULL) {
+        printf("Writing to file: %s, %s %d %s %d\n", tag->name, tag->idS, tag->idD, tag->pass, tag->access);
+        fprintf(tagFileW, "%s, %s %d %s %d\n", tag->name, tag->idS, tag->idD, tag->pass, tag->access);
+        printf("After fprintf\n");
+        fflush(tagFileW);
 
+        fclose(tagFileW);
+        tagFileW = NULL;
+        return 0;
     } else {
 
         perror("Error opening file/ APPEND");
         return -1;
 
     } 
-
-    fclose(tagFile);
-    return 0;
+    */
+     // fclose() error -> stdio.h line:372 | __retval = __mingw_vfprintf( __stream, __format, __local_argv );
+    
 }
 
 // checks if file is empty
 int isFileEmpty(){
 
-    FILE *tagsFile = fopen("tags.txt", "r");
+    FILE *tagsFileY = fopen("tags.txt", "r");
 
-    if (tagsFile == NULL) {
+    if (tagsFileY == NULL) {
         perror("Error opening file / isFileEmpty");
         return -1; 
     }
 
-    fseek(tagsFile, 0, SEEK_END);  
-    long fileSize = ftell(tagsFile); 
+    fseek(tagsFileY, 0, SEEK_END);  
+    long fileSize = ftell(tagsFileY); 
 
     
 
@@ -273,5 +297,5 @@ int isFileEmpty(){
     } else {
         return 1; // File is not empty
     }
-fclose(tagsFile);
+fclose(tagsFileY);
 }
