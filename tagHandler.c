@@ -1,5 +1,9 @@
 #include "tagHandler.h"
 
+// TODO's: 
+// add timestamp created/changed
+
+
 int arrayHandler(TAG *tag, int option, int *direction){
 
     static TAG *tags = NULL;
@@ -14,7 +18,7 @@ int arrayHandler(TAG *tag, int option, int *direction){
             fprintf(stderr, "Memory allocation failed.\n");
             exit(EXIT_FAILURE); // to harsh maybe? 
             }
-            
+            printf("Timestamp: %s\n", tag->createdTs);
             strncpy(tags[tagCount].name, tag->name, sizeof(tags[tagCount].name));
             tags[tagCount].name[sizeof(tags[tagCount].name) - 1] = '\0';
 
@@ -28,27 +32,33 @@ int arrayHandler(TAG *tag, int option, int *direction){
 
             tags[tagCount].access = tag->access;
 
-            if(*direction == 0){
+            strncpy(tags[tagCount].createdTs, tag->createdTs, sizeof(tags[tagCount].createdTs));
+            tags[tagCount].createdTs[sizeof(tags[tagCount].createdTs) - 1] = '\0';
 
-                fileWriter(tag);
 
-            }else if(*direction == 1){
+            strncpy(tags[tagCount].changedTs, tag->changedTs, sizeof(tags[tagCount].changedTs));
+            tags[tagCount].changedTs[sizeof(tags[tagCount].changedTs) - 1] = '\0';
+
+
+            if(*direction == 1){
 
                 fileALI(tag);
 
             }
             
             tagCount++;
+            return 0;
 
         } else { // if tags exists -> realloc
-
-            tags = realloc(tags, sizeof(TAG) * tagCount + 1);
-
+            
+            tags = realloc(tags, sizeof(TAG) * (tagCount + 1)); // this was the clusterfick
+                                                                // tagCount + 1 -> (tagCount + 1) 
             if (tags == NULL) {  
             fprintf(stderr, "Memory reallocation failed.\n");
             exit(EXIT_FAILURE); 
             }
 
+            printf("%s\n",tag->name);
             strncpy(tags[tagCount].name, tag->name, sizeof(tags[tagCount].name));
             tags[tagCount].name[sizeof(tags[tagCount].name) - 1] = '\0';
 
@@ -62,30 +72,24 @@ int arrayHandler(TAG *tag, int option, int *direction){
 
             tags[tagCount].access = tag->access;
 
-            
-                printf("Element %d:\n", 2);
-                printf("  Name: %s\n", tags[1].name);
-                printf("  idS: %s\n", tags[1].idS);
-                printf("  idD: %d\n", tags[1].idD);
-                printf("  Pass: %s\n", tags[1].pass);
-                printf("  Access: %d\n", tags[1].access);
-                printf("\n");
+            strncpy(tags[tagCount].createdTs, tag->createdTs, sizeof(tags[tagCount].createdTs));
+            tags[tagCount].createdTs[sizeof(tags[tagCount].createdTs) - 1] = '\0';
+
+
+            strncpy(tags[tagCount].changedTs, tag->changedTs, sizeof(tags[tagCount].changedTs));
+            tags[tagCount].changedTs[sizeof(tags[tagCount].changedTs) - 1] = '\0';
             
 
-            if(*direction == 0){
-
-                fileWriter(tag);
-
-            }else if(*direction == 1){
+            tagCount++; 
+            
+            if(*direction == 1){
 
                 fileALI(tag);
             }
-
-            tagCount++;
+            return 0;
         }
-    
     }else if(option == 1){ // option = 1 make changes in tag
-
+            //implement changes
 
 
     }else if(option == 2){ // option = 2 Check array for avaliable idD
@@ -134,9 +138,12 @@ int arrayHandler(TAG *tag, int option, int *direction){
             return 0;
 
         }
+    }else if(option == 8){ // save tags to file and  release memory onExit()
 
-    }else if(option == 9){ // release memory when closing program / calling onExit()
+
+        fileWriter(tags, tagCount);
         free(tags);
+    
     }
     return 0;
 }   
@@ -157,6 +164,12 @@ void newTag(TAG *tag, int *direction){ // from user dir 0, from file dir 1
     newTag.pass[sizeof(newTag.pass) - 1] = '\0';
 
     newTag.access = tag->access;
+
+    strncpy(newTag.createdTs, tag->createdTs, sizeof(newTag.createdTs) - 1);
+    newTag.createdTs[sizeof(newTag.createdTs) - 1] = '\0'; 
+
+    strncpy(newTag.changedTs, tag->changedTs, sizeof(newTag.changedTs) - 1);
+    newTag.changedTs[sizeof(newTag.changedTs) - 1] = '\0'; 
 
     arrayHandler(&newTag, 0, direction);
 }
@@ -189,9 +202,11 @@ int checkPass(char tPass[17]){
 } 
 
 void onExit(){
-    TAG tag;
+    
+    TAG tag; // dont like these dummies -> solution?!
     int direction = 3;
-    arrayHandler(&tag, 9, &direction);
+    arrayHandler(&tag, 8, &direction); // saves tags to file and release allocated memory
+
 }
 
 // Reads tags from file
@@ -210,9 +225,8 @@ int fileReader() {
             }
 
             TAG tag;
-
             
-            if (sscanf(line, "%255[^,], %1s %d %16s %d", tag.name, tag.idS, &tag.idD, tag.pass, &tag.access) == 5) {
+            if (sscanf(line, "%255[^,], %1s %d %16s %d %19s %19s", tag.name, tag.idS, &tag.idD, tag.pass, &tag.access, tag.createdTs, tag.changedTs) == 7) {
                 // Process the tag
                 newTag(&tag, &direction);
             } else {
@@ -227,75 +241,28 @@ int fileReader() {
         perror("Error opening file/ READ");
         return -1;
     }
-
     
 }
 
 // saves tag to file
-int fileWriter(TAG *tag) { // add new tags to file
+int fileWriter(TAG *tags, int tagCount) { // add new tags to file
 
-    FILE *tagFileW = fopen("tags.txt", "a");
+    if(tagCount > 0){
 
-    if (tagFileW == NULL) {
-    perror("Error opening file for writing");
-    return -1;
+        FILE *tagFileW = fopen("tags.txt", "w");
+
+            if (tagFileW == NULL) {
+            perror("Error opening file for writing");
+            return -1;
+            }
+            
+            for(int i = 0; i < tagCount; i++){
+
+                fprintf(tagFileW, "%s, %s %d %s %d %s %s\n", tags[i].name, tags[i].idS, tags[i].idD, tags[i].pass, tags[i].access, tags[i].createdTs, tags[i].changedTs);
+
+            }
+        
+            fclose(tagFileW);
     }
-
-    if (tagFileW != NULL) {
-    fputs(tag->name, tagFileW);
-    fputs(",", tagFileW);
-    fputs(" ", tagFileW);
-    fputs(tag->idS, tagFileW);
-    fputs(" ", tagFileW);
-    fprintf(tagFileW, "%d ", tag->idD);
-    fputs(tag->pass, tagFileW);
-    fprintf(tagFileW, " %d\n", tag->access);
-    fclose(tagFileW);
-    } else {
-        perror("Error opening file/APPEND");
-        return -1;
-    }
-
-    /*
-    if (tagFileW != NULL) {
-        printf("Writing to file: %s, %s %d %s %d\n", tag->name, tag->idS, tag->idD, tag->pass, tag->access);
-        fprintf(tagFileW, "%s, %s %d %s %d\n", tag->name, tag->idS, tag->idD, tag->pass, tag->access);
-        printf("After fprintf\n");
-        fflush(tagFileW);
-
-        fclose(tagFileW);
-        tagFileW = NULL;
-        return 0;
-    } else {
-
-        perror("Error opening file/ APPEND");
-        return -1;
-
-    } 
-    */
-     // fclose() error -> stdio.h line:372 | __retval = __mingw_vfprintf( __stream, __format, __local_argv );
-    
-}
-
-// checks if file is empty
-int isFileEmpty(){
-
-    FILE *tagsFileY = fopen("tags.txt", "r");
-
-    if (tagsFileY == NULL) {
-        perror("Error opening file / isFileEmpty");
-        return -1; 
-    }
-
-    fseek(tagsFileY, 0, SEEK_END);  
-    long fileSize = ftell(tagsFileY); 
-
-    
-
-    if (fileSize == 0) {
-        return 0; // File is empty
-    } else {
-        return 1; // File is not empty
-    }
-fclose(tagsFileY);
+    return 0;
 }

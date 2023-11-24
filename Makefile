@@ -1,5 +1,5 @@
 PROG = gateKeeper.exe
-SRCS = gateKeeper.c tagHandler.c randomPass.c
+SRCS = gateKeeper.c tagHandler.c randomPass.c timestamp.c
 OBJS = $(SRCS:.c=.o)
 CFLAGS = -g -Wall -Wextra -Wconversion -pedantic -std=c11
 LIBS = -lcomctl32 -lgdi32 -luser32

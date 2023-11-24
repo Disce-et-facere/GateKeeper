@@ -1,5 +1,10 @@
 #include "gateKeeper.h"
 
+// TODO'S: 1. Before user press the add button in the add tag popup, ask to scan tag before adding -> add after arduino setup
+//         2. Implement safeInput into userinput in add tag popup and change name popup.
+//         3. Add onHover popup with timestamp info -> created and changed
+
+
     // Main Window (hwnd) -->
     HWND hwnd;
     HWND hListView;
@@ -54,23 +59,22 @@
     HWND rtRemoveBtn;
     HWND rtCancelbtn;
 
+    // listitem Info Popup
+    HWND iliPopup;
+    HWND iliCreated;
+    HWND iliChanged;
+
     // globalize list Items
     LVITEM lvItem;
   
 BOOL popupRegd = FALSE; // maybe not needed as global?
 int currentListItems = 0;
 
-// TODO'S: Before user press the add button in the add tag popup, ask to scan tag before adding -> add after arduino setup
-//         Create function to add new tags/cards in the list. and remove the current dummies.
-//         Implement safeInput into userinput in add tag popup and change name popup.
-//         Add grab function from userInputs
-
 // Message handler for hwnd (Main Window), well all windows actually
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
     switch (msg) {
     
-
         // Handle pressed buttons
         case WM_COMMAND:
         {
@@ -216,43 +220,38 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         }
 
         // Handle list selection
-        case WM_NOTIFY: // remove timer here if possible? --->
+        case WM_NOTIFY:
         {
             NMLISTVIEW* pnmv = (NMLISTVIEW*)lParam;
-            if (pnmv->hdr.code == LVN_ITEMCHANGING) {
-                
-                BOOL bItemSelected = ListView_GetSelectedCount(hListView) > 0;
 
-                if (bItemSelected && (pnmv->uNewState & LVIS_SELECTED)) {
-                    return TRUE;
+            if (pnmv->hdr.code == LVN_ITEMCHANGED) {
+                // Get the selected item index
+                int selectedItemIndex = ListView_GetNextItem(hListView, -1, LVNI_SELECTED);
+
+                if (selectedItemIndex != -1) {
+                    // Iterate through subitems and set the selected state
+                    int numSubItems = 3; // Replace ... with the number of subitems
+                    for (int subItemIndex = 0; subItemIndex < numSubItems; ++subItemIndex) {
+                        ListView_SetItemState(hListView, selectedItemIndex, LVIS_SELECTED, LVIS_SELECTED);
+                    }
+                    
+                    // Enable or disable buttons here based on the selection
+                    EnableWindow(cnBtn, TRUE);
+                    EnableWindow(cidBtn, TRUE);
+                    EnableWindow(cacBtn, TRUE);
+                    EnableWindow(rtBtn, TRUE);
+                }
+                else {
+                    // No item selected, disable buttons
+                    EnableWindow(cnBtn, FALSE);
+                    EnableWindow(cidBtn, FALSE);
+                    EnableWindow(cacBtn, FALSE);
+                    EnableWindow(rtBtn, FALSE);
                 }
             }
-            else if (pnmv->hdr.code == LVN_ITEMCHANGED) {
-                SetTimer(hwnd, TIMER_ENABLE_BUTTONS, BUTTON_ENABLE_DELAY, NULL);
-            }
+
             break;
         }
-
-
-        case WM_TIMER: {
-            switch (wParam) {
-                case TIMER_ENABLE_BUTTONS: {
-
-                    BOOL bItemSelected = ListView_GetSelectedCount(hListView) > 0;
-
-                        // fix disable rest of buttons when one button is pressed. shit ton of if statements?, same as line 114
-
-                        EnableWindow(cnBtn, bItemSelected);
-                        EnableWindow(cidBtn, bItemSelected);
-                        EnableWindow(cacBtn, bItemSelected);
-                        EnableWindow(rtBtn, bItemSelected);
-
-                    break;
-                }
-            }
-            break;
-        }
-
         case WM_MOVE:
         {   // auto reposition for popups --->
             // no else if because the if statements checks if popup window is created or not.... fix/change later if needed
@@ -288,10 +287,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             }
             break;
         }
-        
         case WM_DESTROY:
         {
-            onExit();
+            static int exitCalled = 0;
+            if(!exitCalled){
+               onExit(); 
+               exitCalled = 1;
+            }
+            
             PostQuitMessage(0);
             break;
         }    
@@ -376,22 +379,30 @@ int createMainContent(){
     LVCOLUMN lvColumn = {0};
     lvColumn.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
     lvColumn.pszText = "NAME";
-    lvColumn.cx = 150;
+    lvColumn.cx = 120;
     SendMessage(hListView, LVM_INSERTCOLUMN, 0, (LPARAM)&lvColumn);
 
     lvColumn.pszText = "ID";
-    lvColumn.cx = 150;
+    lvColumn.cx = 40;
     SendMessage(hListView, LVM_INSERTCOLUMN, 1, (LPARAM)&lvColumn);
 
     lvColumn.pszText = "PASS";
-    lvColumn.cx = 150;
+    lvColumn.cx = 130;
     SendMessage(hListView, LVM_INSERTCOLUMN, 2, (LPARAM)&lvColumn);
 
     lvColumn.pszText = "ACCESS";
-    lvColumn.cx = 150;
+    lvColumn.cx = 70;
     SendMessage(hListView, LVM_INSERTCOLUMN, 3, (LPARAM)&lvColumn);
 
-    // Add items - TODO: Create function for adding items dynamicly
+    lvColumn.pszText = "CREATED";
+    lvColumn.cx = 135;
+    SendMessage(hListView, LVM_INSERTCOLUMN, 4, (LPARAM)&lvColumn);
+    
+    lvColumn.pszText = "CHANGED";
+    lvColumn.cx = 135;
+    SendMessage(hListView, LVM_INSERTCOLUMN, 5, (LPARAM)&lvColumn);
+
+    // Add items
     LVITEM lvItem = {0};
     lvItem.mask = LVIF_TEXT;
     lvItem.iItem = currentListItems;
@@ -410,6 +421,14 @@ int createMainContent(){
 
     lvItem.iSubItem = 3;
     lvItem.pszText ="GRANTED";
+    SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
+
+    lvItem.iSubItem = 4;
+    lvItem.pszText ="YYYY-MM-DD 00:00:00";
+    SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
+
+    lvItem.iSubItem = 5;
+    lvItem.pszText ="YYYY-MM-DD 00:00:00";
     SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
 
     currentListItems++;
@@ -893,6 +912,7 @@ void addPopup(int i){
             rtPopup, (HMENU)RT_BUTTON_CANCEL, GetModuleHandle(NULL), NULL);
 
     }// <--- Remove Tag Popup
+
 }
 
 // extra functions --->
@@ -988,6 +1008,16 @@ void userALI(){ // user add list item <---
         strcpy(sListAccess, "DENIED");
         listAccess = 1;
     }
+    // create timestamp for tag.createdTs
+    char listTimestamp[20];
+    char *tempTimestamp;
+    
+        tempTimestamp = getTimestamp();  
+
+    strcpy(listTimestamp, tempTimestamp);
+
+    free(tempTimestamp);
+
     
     // adds a new list item with gathered values
     int currentListSubItem = 0;
@@ -1023,6 +1053,18 @@ void userALI(){ // user add list item <---
     lvItem.pszText = sListAccess;
     SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
 
+    currentListSubItem++;
+
+    lvItem.iSubItem = currentListSubItem;
+    lvItem.pszText = listTimestamp;
+    SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
+
+    currentListSubItem++;
+
+    lvItem.iSubItem = currentListSubItem;
+    lvItem.pszText = "yyyy-mm-dd 00:00:00";
+    SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
+
     currentListSubItem = 0;
 
     currentListItems++;
@@ -1044,6 +1086,11 @@ void userALI(){ // user add list item <---
     tag.pass[sizeof(tag.pass) - 1] = '\0';
 
     tag.access = listAccess;
+
+    strncpy(tag.createdTs, listTimestamp, sizeof(tag.createdTs) - 1);
+    tag.pass[sizeof(tag.createdTs) - 1] = '\0';
+
+    strcpy(tag.changedTs, "yyyy-mm-dd 00:00:00");
 
     int direction = 0;
 
@@ -1098,8 +1145,20 @@ void fileALI(TAG *tag){ // adds list item from file
     lvItem.pszText = sListAccess;
     SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
 
+    currentListSubItem++;
+
+    lvItem.iSubItem = currentListSubItem;
+    lvItem.pszText = tag->createdTs;
+    SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
+
+    currentListSubItem++;
+
+    lvItem.iSubItem = currentListSubItem;
+    lvItem.pszText = tag->changedTs;
+    SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
+
     currentListSubItem = 0;
 
     currentListItems++;
 
-}
+} // <--- extra functions

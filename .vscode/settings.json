@@ -44,6 +44,7 @@
         "windows.h": "c",
         "stdio.h": "c",
         "string.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "timestamp.h": "c"
     }
 }

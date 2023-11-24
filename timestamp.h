@@ -1,10 +1,10 @@
-#ifndef RANDOMPASS_H
-#define RANDOMPASS_H
+#ifndef TIMESTAMP_H
+#define TIMESTAMP_H
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
-char *randomPass();
+char *getTimestamp();
 
 #endif
