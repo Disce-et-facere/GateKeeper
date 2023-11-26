@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <windows.h>
 #include <commctrl.h>
+#include <ctype.h>
 #include "randomPass.h"
 #include "tagHandler.h"
 
@@ -33,5 +34,9 @@ void addPopup(int i);
 int getHwndPos(int i);
 void userALI();
 void fileALI();
+int checkInput(const char *text); // check if userinput contains non letter characters
+int onPopupAtaTime(int popup);
+void changedTag(int index, int subIndex, char change[255]);
+int removeTag(int index);
 
 #endif

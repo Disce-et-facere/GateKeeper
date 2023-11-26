@@ -45,6 +45,7 @@
         "stdio.h": "c",
         "string.h": "c",
         "stdbool.h": "c",
-        "timestamp.h": "c"
+        "timestamp.h": "c",
+        "ctype.h": "c"
     }
 }

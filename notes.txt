@@ -8,3 +8,35 @@ int fprintf (FILE *__stream, const char *__format, ...)
   __builtin_va_end( __local_argv );
   return __retval;
 }
+
+/*
+printf("%s\n",tags[tagCount].name);
+printf("%s\n",tags[tagCount].idS);
+printf("%d\n",tags[tagCount].idD);
+printf("%s\n",tags[tagCount].pass);
+printf("%d\n",tags[tagCount].access);
+printf("%s\n",tags[tagCount].createdTs);
+printf("%s\n",tags[tagCount].changedTs);
+*/
+/*
+printf("Timestamp: %s\n", tag->createdTs);
+strncpy(tags[tagCount].name, tag->name, sizeof(tags[tagCount].name));
+tags[tagCount].name[sizeof(tags[tagCount].name) - 1] = '\0';
+
+strncpy(tags[tagCount].idS, tag->idS, sizeof(tags[tagCount].idS));
+tags[tagCount].idS[sizeof(tags[tagCount].idS) - 1] = '\0';
+
+tags[tagCount].idD = tag->idD;
+
+strncpy(tags[tagCount].pass, tag->pass, sizeof(tags[tagCount].pass));
+tags[tagCount].pass[sizeof(tags[tagCount].pass) - 1] = '\0';
+
+tags[tagCount].access = tag->access;
+
+strncpy(tags[tagCount].createdTs, tag->createdTs, sizeof(tags[tagCount].createdTs));
+tags[tagCount].createdTs[sizeof(tags[tagCount].createdTs) - 1] = '\0';
+
+
+strncpy(tags[tagCount].changedTs, tag->changedTs, sizeof(tags[tagCount].changedTs));
+tags[tagCount].changedTs[sizeof(tags[tagCount].changedTs) - 1] = '\0';
+*/

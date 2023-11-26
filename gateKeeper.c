@@ -73,10 +73,22 @@ int currentListItems = 0;
 // Message handler for hwnd (Main Window), well all windows actually
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
+    static HBRUSH hbrush = NULL;  
+
+    static int selectedItemIndex = -1;
+
     switch (msg) {
-    
-        // Handle pressed buttons
-        case WM_COMMAND:
+        
+        case WM_CTLCOLORSTATIC: 
+        {
+            HDC hdcStatic = (HDC)wParam;
+            SetTextColor(hdcStatic, RGB(255, 255, 255));
+            SetBkColor(hdcStatic, RGB(100, 100, 100));
+            if (!hbrush)
+                hbrush = CreateSolidBrush(RGB(100, 100, 100));
+            return (LRESULT)hbrush;
+        }
+        case WM_COMMAND: // Handle pressed buttons
         {
             if (HIWORD(wParam) == BN_CLICKED) {
                 int buttonId = LOWORD(wParam);
@@ -87,25 +99,33 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                     {
                         if(atPopup == NULL){
                             addPopup(1);
-                            //disableAllButtons();
+                            onPopupAtaTime(1);
                             break;    
                         } else {
                             ShowWindow(atPopup, SW_SHOW);
-                            //disableAllButtons();
+                            onPopupAtaTime(1);
                             break;
                         }
         
                     }
 
-                    case 1002: // todo: fix enable disable buttons collision with enable on select in list!
+                    case 1002:
                     {
+                        char selectedName1[256];
+                        strcpy(selectedName1, "Selected Name: ");
+                        char selectedName2[256];
+                        ListView_GetItemText(hListView, selectedItemIndex, 0, selectedName2, sizeof(selectedName2));
+                        strcat(selectedName1, selectedName2);
+
                         if(cnPopup == NULL){
                             addPopup(2);
-                            //disableAllButtons();
+                            onPopupAtaTime(2);
+                            SetWindowText(cnCurrentNameLabel, selectedName1);
                             break;   
                         }else{
                             ShowWindow(cnPopup, SW_SHOW);
-                            //disableAllButtons();
+                            onPopupAtaTime(2);
+                            SetWindowText(cnCurrentNameLabel, selectedName1);
                             break;
                         }
                         
@@ -113,39 +133,123 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                     }
                     case 1003:
                     {   
+                        char selectedId1[256];
+                        strcpy(selectedId1, "Selected ID: ");
+                        char selectedId2[256];
+                        ListView_GetItemText(hListView, selectedItemIndex, 1, selectedId2, sizeof(selectedId2));
+                        strcat(selectedId1, selectedId2);
+
                         if(cidPopup == NULL){
                             addPopup(3);
-                            //disableAllButtons();
+                            onPopupAtaTime(3);
+                            SetWindowText(cidCurrentIdLabel, selectedId1);
                             break;   
                         }else{
                             ShowWindow(cidPopup, SW_SHOW);
-                            //disableAllButtons();
+                            onPopupAtaTime(3);
+                            SetWindowText(cidCurrentIdLabel, selectedId1);
                             break;
                         }
                         break;
                     }
-                    case 1004:
+                    case 1004: // use macro names for better reading ---> TODO
                     {
-                        if(caPopup == NULL){
-                            addPopup(4);
-                            //disableAllButtons();
-                            break;   
+                        char selectedAccess1[256];
+                        strcpy(selectedAccess1, "Selected Access: ");
+                        char selectedAccess2[256];
+                        ListView_GetItemText(hListView, selectedItemIndex, 3, selectedAccess2, sizeof(selectedAccess2));
+                        strcat(selectedAccess1, selectedAccess2);
+
+                        if(selectedAccess2[0] == 'G'){
+                        
+                            SendMessage(caRadioTrue, BM_SETCHECK, BST_CHECKED, 0);
+                            
                         }else{
+
+                            SendMessage(caRadioFalse, BM_SETCHECK, BST_CHECKED, 0);
+
+                        }
+
+                        if(caPopup == NULL){
+
+                            addPopup(4);
+
+                            if(selectedAccess2[0] == 'G'){
+                        
+                            SendMessage(caRadioTrue, BM_SETCHECK, BST_CHECKED, 0);
+                            
+                            }else{
+
+                                SendMessage(caRadioFalse, BM_SETCHECK, BST_CHECKED, 0);
+
+                            }
+
+                            onPopupAtaTime(4);
+
+                            SetWindowText(caCurrentAccessLabel, selectedAccess1);
+
+                            break;   
+
+                        }else{
+
+
                             ShowWindow(caPopup, SW_SHOW);
-                            //disableAllButtons();
+
+                            if(selectedAccess2[0] == 'G'){
+                        
+                                SendMessage(caRadioTrue, BM_SETCHECK, BST_CHECKED, 0);
+                                SendMessage(caRadioFalse, BM_SETCHECK, BST_UNCHECKED, 0);
+                            
+                            }else{
+
+                                SendMessage(caRadioFalse, BM_SETCHECK, BST_CHECKED, 0);
+                                SendMessage(caRadioTrue, BM_SETCHECK, BST_UNCHECKED, 0);
+
+                            }
+
+                            onPopupAtaTime(4);
+
+                            SetWindowText(caCurrentAccessLabel, selectedAccess1);
+
                             break;
                         }
                         break;
                     }
                     case 1005:
                     {
+
+                        char selectedName11[256];
+                        strcpy(selectedName11, "Selected Name: ");
+                        char selectedName22[256];
+                        ListView_GetItemText(hListView, selectedItemIndex, 0, selectedName22, sizeof(selectedName22));
+                        strcat(selectedName11, selectedName22);
+
+                        char selectedId11[256];
+                        strcpy(selectedId11, "Selected ID: ");
+                        char selectedId22[256];
+                        ListView_GetItemText(hListView, selectedItemIndex, 1, selectedId22, sizeof(selectedId22));
+                        strcat(selectedId11, selectedId22);
+                    
+
+                        char selectedAccess11[256];
+                        strcpy(selectedAccess11, "Selected Access: ");
+                        char selectedAccess22[256];
+                        ListView_GetItemText(hListView, selectedItemIndex, 3, selectedAccess22, sizeof(selectedAccess22));
+                        strcat(selectedAccess11, selectedAccess22);
+
                         if(rtPopup == NULL){
                             addPopup(5);
-                            //disableAllButtons();
+                            onPopupAtaTime(5);
+                            SetWindowText(rtSelectedNameLabel, selectedName11);
+                            SetWindowText(rtSelectedIdLabel, selectedId11);
+                            SetWindowText(rtSelectedAccessLabel, selectedAccess11);
                             break;   
                         }else{
                             ShowWindow(rtPopup, SW_SHOW);
-                            //disableAllButtons();
+                            onPopupAtaTime(5);
+                            SetWindowText(rtSelectedNameLabel, selectedName11);
+                            SetWindowText(rtSelectedIdLabel, selectedId11);
+                            SetWindowText(rtSelectedAccessLabel, selectedAccess11);
                             break;
                         }
                         break;
@@ -158,46 +262,155 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                     }
                     case AT_BUTTON_ADD:
                     {
-                        userALI();
-                        ShowWindow(atPopup, SW_HIDE);
-                        SetWindowText(atName, "");
-                        break;
+                        char inputText[255];
+
+                        GetWindowText(atName, inputText, sizeof(inputText)-1);
+                        inputText[sizeof(inputText) - 1] = '\0'; 
+                        
+                        if(!checkInput(inputText)){ // checks if inputtext contains any non letters with exception for whitespace
+                            MessageBox(hwnd, "You cant type that, it can only contain letters!", "Non alphabetical Character!", MB_ICONEXCLAMATION | MB_OK);
+
+                            break; 
+                        }else if(GetWindowTextLength(atName) > 254){ 
+                            MessageBox(hwnd, "Jesus that's a long name!\n Its need to be shorter, max 254 characters. ", "Text is to Long!", MB_ICONEXCLAMATION | MB_OK);
+                            break; 
+                        }else{
+                            userALI();
+                            ShowWindow(atPopup, SW_HIDE);
+                            SetWindowText(atName, "");
+                            break;  
+                        }
+                        
                     }
                     case AT_BUTTON_CANCEL:
                     {
                         ShowWindow(atPopup, SW_HIDE);
                         SetWindowText(atName, "");
-                        //enableAllButtons();
                         break;
+                    }
+                    case CN_BUTTON_SAVE:
+                    {
+                        char inputText[255];
+
+                        GetWindowText(cnName, inputText, sizeof(inputText)-1);
+                        inputText[sizeof(inputText) - 1] = '\0'; 
+                        
+                        if(!checkInput(inputText)){ // checks if inputtext contains any non letters with exception for whitespace
+                            MessageBox(hwnd, "You cant type that, it can only contain letters!", "Non alphabetical Character!", MB_ICONEXCLAMATION | MB_OK);
+
+                            break; 
+                        }else if(GetWindowTextLength(atName) > 254){ 
+                            MessageBox(hwnd, "Jesus that's a long name!\n Its need to be shorter, max 254 characters. ", "Text is to Long!", MB_ICONEXCLAMATION | MB_OK);
+                            break; 
+                        }else{
+                            changedTag(selectedItemIndex, 0, inputText);
+                            ShowWindow(cnPopup, SW_HIDE);
+                            SetWindowText(cnName, "");
+                            break;  
+                        }
                     }
                     case CN_BUTTON_CANCEL:
                     {
                         ShowWindow(cnPopup, SW_HIDE);
                         SetWindowText(cnName, "");
-                        //enableAllButtons();
+                        break;
+                    }
+                    case CID_BUTTON_SAVE:
+                    {
+                        int comboIndex = (int)SendMessage(cidComboBox, CB_GETCURSEL, 0,0);
+                        char idsBuffer[10];
+                        SendMessage(cidComboBox, CB_GETLBTEXT, (WPARAM)comboIndex, (LPARAM)idsBuffer);
+                        char comboIdS[255];
+                        comboIdS[0] = (char)toupper(idsBuffer[0]);
+                        comboIdS[1] = '\0';
+                        changedTag(selectedItemIndex, 1, comboIdS);
+                        ShowWindow(cidPopup, SW_HIDE);
                         break;
                     }
                     case CID_BUTTON_CANCEL:
                     {
                         ShowWindow(cidPopup, SW_HIDE);
-                        // add current id in combobox
-                        //enableAllButtons();
+                        break;
+                    }
+                    case CA_BUTTON_SAVE:
+                    {
+                        char accessChoice[255];
+                        
+                        LRESULT result1 = SendMessage(caRadioTrue, BM_GETCHECK, 0,0);
+                        BOOL isTrueChecked = (result1 == BST_CHECKED);
+                        LRESULT result2 = SendMessage(caRadioFalse, BM_GETCHECK, 0, 0);
+                        BOOL isFalseChecked = (result2 == BST_CHECKED);
+
+                        if(isTrueChecked){
+                                 
+                            strcpy(accessChoice, "GRANTED");
+                            
+                        }
+                        else if(isFalseChecked){
+                    
+                            strcpy(accessChoice, "DENIED");
+
+                        } 
+                        changedTag(selectedItemIndex, 3, accessChoice);
+                        ShowWindow(caPopup, SW_HIDE);
                         break;
                     }
                     case CA_BUTTON_CANCEL:
                     {
                         ShowWindow(caPopup, SW_HIDE);
-                        //enableAllButtons();
                         break;
+                    }
+                    case RT_BUTTON_REMOVE:
+                    {   
+                        if(MessageBox(hwnd, "Are you sure? \n \n The tag can not be restored!", "Remove Tag", MB_ICONEXCLAMATION | MB_YESNO) == 6){
+                            printf("yes button!");
+                        removeTag(selectedItemIndex);
+                        ShowWindow(rtPopup, SW_HIDE);
+                        break;
+
+                        }else 
+                        printf("No button!");
+                        ShowWindow(rtPopup, SW_HIDE);
+                        break;
+                        
                     }
                     case RT_BUTTON_CANCEL:
                     {
                         ShowWindow(rtPopup, SW_HIDE);
-                        //enableAllButtons();
                         break;
                     }
+                    
+                    
                     default:
                         break;
+                }
+                // check if oppsite radiobtn is checked in caPopup and enable btn
+                BOOL isTrueChecked = SendMessage(caRadioTrue, BM_GETCHECK, 0,0) == BST_CHECKED;
+                BOOL isFalseChecked = SendMessage(caRadioFalse, BM_GETCHECK, 0, 0) == BST_CHECKED;
+                char currentAccess[8];
+                ListView_GetItemText(hListView, selectedItemIndex, 3, currentAccess, sizeof(currentAccess));
+                char access[] = "GRANTED";
+                
+                int check = strcmp(currentAccess, access); 
+                if(!check && isFalseChecked){
+                            
+                    EnableWindow(caAddBtn, TRUE);
+                        
+                }
+                else if(!check && isTrueChecked){
+
+                    EnableWindow(caAddBtn, FALSE);
+
+                }
+                else if(check < 0 && isTrueChecked){ 
+                        
+                    EnableWindow(caAddBtn, TRUE);
+
+                }
+                else if(check < 0 && isFalseChecked){
+
+                    EnableWindow(caAddBtn, FALSE);
+
                 }
             }
 
@@ -225,16 +438,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             NMLISTVIEW* pnmv = (NMLISTVIEW*)lParam;
 
             if (pnmv->hdr.code == LVN_ITEMCHANGED) {
-                // Get the selected item index
-                int selectedItemIndex = ListView_GetNextItem(hListView, -1, LVNI_SELECTED);
+                
+                selectedItemIndex = ListView_GetNextItem(hListView, -1, LVNI_SELECTED);
 
                 if (selectedItemIndex != -1) {
-                    // Iterate through subitems and set the selected state
-                    int numSubItems = 3; // Replace ... with the number of subitems
-                    for (int subItemIndex = 0; subItemIndex < numSubItems; ++subItemIndex) {
+                    int numSubItems = 5; 
+                    for (int subItemIndex = 0; subItemIndex < numSubItems; subItemIndex++) {
                         ListView_SetItemState(hListView, selectedItemIndex, LVIS_SELECTED, LVIS_SELECTED);
                     }
-                    
                     // Enable or disable buttons here based on the selection
                     EnableWindow(cnBtn, TRUE);
                     EnableWindow(cidBtn, TRUE);
@@ -294,7 +505,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                onExit(); 
                exitCalled = 1;
             }
-            
+            if(hbrush){
+               DeleteObject(hbrush); 
+            } 
             PostQuitMessage(0);
             break;
         }    
@@ -513,20 +726,22 @@ int createMainContent(){
 // Creates Popup Windows depending on i value 1 - 5
 void addPopup(int i){
 
-// change from BOOL to int popupRegd = 0 -> if(popupRegd == 0) -> popupRegd++;
+// change from BOOL to int popupRegd = 0 -> if(popupRegd == 0) -> popupRegd++;  
+static BOOL popupRegd = FALSE; // maybe not needed as global? ---> lets try not to
+
     // Popup class registration
     if(!popupRegd){
     
-    WNDCLASS wcPopup = {0};
-    wcPopup.lpfnWndProc = WndProc;
-    wcPopup.hInstance = GetModuleHandle(NULL);
-    wcPopup.hbrBackground = (HBRUSH)(COLOR_WINDOW + 2);
-    wcPopup.hCursor       = LoadCursor(NULL, IDC_ARROW);
-    wcPopup.lpszClassName = "popupClass";
+        WNDCLASS wcPopup = {0};
+        wcPopup.lpfnWndProc = WndProc;
+        wcPopup.hInstance = GetModuleHandle(NULL);
+        wcPopup.hbrBackground = (HBRUSH)(COLOR_WINDOW + 2);
+        wcPopup.hCursor       = LoadCursor(NULL, IDC_ARROW);
+        wcPopup.lpszClassName = "popupClass";
 
-    if (!RegisterClass(&wcPopup)) {
-        MessageBox(NULL, "AT Popup Registration Failed!", "Error", MB_ICONEXCLAMATION | MB_OK);
-    }
+        if (!RegisterClass(&wcPopup)) {
+            MessageBox(NULL, "AT Popup Registration Failed!", "Error", MB_ICONEXCLAMATION | MB_OK);
+        }
     popupRegd = TRUE;
     }
 
@@ -597,7 +812,8 @@ void addPopup(int i){
         90, 80, 60, 20, 
         atPopup, (HMENU)IDC_RADIO_TRUE, GetModuleHandle(NULL), NULL);
 
-    atRadioFalse = CreateWindowEx(0, 
+    atRadioFalse = CreateWindowEx(
+        0, 
         "BUTTON", 
         "NO", 
         WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON, 
@@ -754,7 +970,7 @@ void addPopup(int i){
             "SAVE", 
             WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 
             10, 120, 80, 30, 
-            cidPopup, (HMENU)CN_BUTTON_SAVE, GetModuleHandle(NULL), NULL);
+            cidPopup, (HMENU)CID_BUTTON_SAVE, GetModuleHandle(NULL), NULL);
 
         EnableWindow(cnAddBtn, FALSE);
 
@@ -815,14 +1031,15 @@ void addPopup(int i){
             90, 60, 60, 20, 
             caPopup, (HMENU)CA_RADIO_TRUE, GetModuleHandle(NULL), NULL);
 
-        caRadioFalse = CreateWindowEx(0, 
+        caRadioFalse = CreateWindowEx(
+            0, 
             "BUTTON", 
             "NO", 
             WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON, 
             160, 60, 50, 20, 
             caPopup, (HMENU)CA_RADIO_FALSE, GetModuleHandle(NULL), NULL);
 
-            SendMessage(atRadioTrue, BM_SETCHECK, BST_CHECKED, 0);
+            //SendMessage(caRadioTrue, BM_SETCHECK, BST_CHECKED, 0);
 
         caAddBtn = CreateWindowEx(
             0, 
@@ -832,7 +1049,7 @@ void addPopup(int i){
             10, 120, 80, 30, 
             caPopup, (HMENU)CA_BUTTON_SAVE, GetModuleHandle(NULL), NULL);
 
-            EnableWindow(cnAddBtn, FALSE);
+            EnableWindow(caAddBtn, FALSE);
 
         caCancelbtn = CreateWindowEx(
             0, 
@@ -865,7 +1082,7 @@ void addPopup(int i){
 
         rtSelectedNameLabel = CreateWindow(
             "STATIC", 
-            " Selected Name:", 
+            "", 
             WS_VISIBLE | WS_CHILD,
             10, 
             10, 
@@ -875,7 +1092,7 @@ void addPopup(int i){
         
         rtSelectedIdLabel = CreateWindow(
             "STATIC", 
-            " Selected ID:", 
+            "", 
             WS_VISIBLE | WS_CHILD,
             10, 
             40, 
@@ -885,7 +1102,7 @@ void addPopup(int i){
 
         rtSelectedAccessLabel = CreateWindow(
             "STATIC", 
-            " Selected Access:", 
+            "", 
             WS_VISIBLE | WS_CHILD,
             10, 
             70, 
@@ -935,26 +1152,6 @@ int getHwndPos(int i){
     return 0;
 }
 
-// disables all button ---> temp function, not used
-void disableAllButtons(){
-    EnableWindow(cnBtn, FALSE);
-    EnableWindow(cidBtn, FALSE);
-    EnableWindow(rtBtn, FALSE);
-    EnableWindow(cacBtn, FALSE);
-    EnableWindow(atBtn, FALSE);
-    EnableWindow(odBtn, FALSE);
-}
-
-// enables all button ---> temp function, not used
-void enableAllButtons(){
-    EnableWindow(cnBtn, TRUE);
-    EnableWindow(cidBtn, TRUE);
-    EnableWindow(rtBtn, TRUE);
-    EnableWindow(cacBtn, TRUE);
-    EnableWindow(atBtn, TRUE);
-    EnableWindow(odBtn, TRUE);
-}
-
 void userALI(){ // user add list item <---
     
     // fetch name from add popup
@@ -1000,13 +1197,13 @@ void userALI(){ // user add list item <---
     if(isTrueChecked){
         
         strcpy(sListAccess, "GRANTED");
-        listAccess = 0;
+        listAccess = 1;
 
     }
     else if(isFalseChecked){
         
         strcpy(sListAccess, "DENIED");
-        listAccess = 1;
+        listAccess = 0;
     }
     // create timestamp for tag.createdTs
     char listTimestamp[20];
@@ -1130,12 +1327,12 @@ void fileALI(TAG *tag){ // adds list item from file
     currentListSubItem++;
 
     char sListAccess[8];
-        if(tag->access == 0){
+        if(tag->access == 1){
         
             strcpy(sListAccess, "GRANTED");
             sListAccess[7] = '\0';
         }
-        else if(tag->access == 1){
+        else if(tag->access == 0){
             
             strcpy(sListAccess, "DENIED");
             sListAccess[7] = '\0';
@@ -1161,4 +1358,215 @@ void fileALI(TAG *tag){ // adds list item from file
 
     currentListItems++;
 
-} // <--- extra functions
+} 
+
+void changedTag(int index, int subIndex, char value[255]){
+
+    TAG tag;
+
+    if(subIndex == 0){ // CHANGE NAME
+
+        strncpy(tag.name, value, sizeof(tag.name) - 1);
+        tag.name[sizeof(tag.name) - 1] = '\0';
+
+        char tempId[256];
+        ListView_GetItemText(hListView, index, 1, tempId, sizeof(tempId));
+
+        strncpy(tag.idS, tempId, 1);    // use parts of this for below except IdS parts
+
+        char tempNumber[256];
+        strcpy(tempNumber, tempId + 1);   // use parts of this for below except IdS parts
+
+        tag.idD = atoi(tempNumber); // converts chars to ints
+
+        char tempAccess[256];
+        ListView_GetItemText(hListView, index, 3, tempAccess, sizeof(tempAccess));
+
+        if(tempAccess[0] == 'G'){
+            tag.access = 1;
+        }else if(tempAccess[0] == 'D'){
+            tag.access = 0;
+        }
+
+    ListView_SetItemText(hListView, index, subIndex, value);
+      
+    }else if(subIndex == 1){ // CHANGE ID
+
+        ListView_GetItemText(hListView, index, 0, tag.name, sizeof(tag.name));
+
+        strncpy(tag.idS, value, 1); 
+        tag.idS[sizeof(tag.idS) - 1] = '\0'; 
+
+        char tempId[256];
+        ListView_GetItemText(hListView, index, 1, tempId, sizeof(tempId));
+
+        char tempNumber[256];
+        strcpy(tempNumber, tempId + 1); 
+
+        tag.idD = atoi(tempNumber); 
+       
+        char tempAccess[256];
+        ListView_GetItemText(hListView, index, 3, tempAccess, sizeof(tempAccess));
+
+        if(tempAccess[0] == 'G'){
+            tag.access = 1;
+        }else if(tempAccess[0] == 'D'){
+            tag.access = 0;
+        }
+
+        char newValue[255];
+        sprintf(newValue, "%s%s", tag.idS, tempNumber);
+    
+    ListView_SetItemText(hListView, index, subIndex, newValue);;
+
+    }else if(subIndex == 3){ // CHANGE ACCESS
+
+        ListView_GetItemText(hListView, index, 0, tag.name, sizeof(tag.name));
+
+        char tempId[256];
+        ListView_GetItemText(hListView, index, 1, tempId, sizeof(tempId));
+
+        strncpy(tag.idS, tempId, 1);
+
+        char tempNumber[256];
+        strcpy(tempNumber, tempId + 1);
+
+        tag.idD = atoi(tempNumber);
+
+        if(value[0] == 'G'){
+            tag.access = 1;
+        }else if(value[0] == 'D'){
+            tag.access = 0;
+        }
+            
+    ListView_SetItemText(hListView, index, subIndex, value);
+
+    }
+
+    ListView_GetItemText(hListView, index, 2, tag.pass, sizeof(tag.pass));
+    ListView_GetItemText(hListView, index, 4, tag.createdTs, sizeof(tag.createdTs));
+
+    char newTimestamp[20];
+    char *newTempTimestamp;
+    
+    newTempTimestamp = getTimestamp();  
+
+    strcpy(newTimestamp, newTempTimestamp);
+
+    free(newTempTimestamp);
+
+    strncpy(tag.changedTs, newTimestamp, sizeof(tag.changedTs) - 1);
+    tag.changedTs[sizeof(tag.changedTs) - 1] = '\0';
+
+    ListView_SetItemText(hListView, index, 5, newTimestamp);
+
+    printf("Ett: \n");
+    printf("%s\n",tag.name);
+    printf("%s\n",tag.idS);
+    printf("%d\n",tag.idD);
+    printf("pass: \n");
+    printf("%s\n",tag.pass);
+    printf("pass: \n");
+    printf("%d\n",tag.access);
+    printf("%s\n",tag.createdTs);
+    printf("%s\n",tag.changedTs);
+    //changeTag(&tag);
+    int option = 1;
+    int direction = 3;
+    arrayHandler(&tag, option, &direction);
+}   
+
+int removeTag(int index){
+
+    TAG tag;
+
+    ListView_GetItemText(hListView, index, 0, tag.name, sizeof(tag.name));
+
+    char tempId[256];
+    ListView_GetItemText(hListView, index, 1, tempId, sizeof(tempId));
+
+    strncpy(tag.idS, tempId, 1);   
+
+    char tempNumber[256];
+    strcpy(tempNumber, tempId + 1);   
+
+    tag.idD = atoi(tempNumber); 
+
+    ListView_GetItemText(hListView, index, 2, tag.pass, sizeof(tag.pass));
+
+    char tempAccess[256];
+    ListView_GetItemText(hListView, index, 3, tempAccess, sizeof(tempAccess));
+
+    if(tempAccess[0] == 'G'){
+        tag.access = 1;
+    }else if(tempAccess[0] == 'D'){
+        tag.access = 0;
+    }
+
+    ListView_GetItemText(hListView, index, 4, tag.createdTs, sizeof(tag.createdTs));
+
+    ListView_GetItemText(hListView, index, 5, tag.changedTs, sizeof(tag.changedTs));
+
+    printf("Ett: \n");
+    printf("%s\n",tag.name);
+    printf("%s\n",tag.idS);
+    printf("%d\n",tag.idD);
+    printf("%s\n",tag.pass);
+    printf("%d\n",tag.access);
+    printf("%s\n",tag.createdTs);
+    printf("%s\n",tag.changedTs);
+    //deleteTag(&tag);
+    int option = 4;
+    int direction = 3;
+    arrayHandler(&tag, option, &direction);
+
+    ListView_DeleteItem(hListView, index);
+
+    return 0;
+}
+int checkInput(const char *text){
+
+    while (*text) {
+        if (!isalpha(*text) && *text != ' ') {
+            return 0; // non letter
+        }
+        text++;
+    }
+    return 1; // letter and whitespace
+}
+
+int onPopupAtaTime(int popup){
+
+    if(popup == 1){
+        ShowWindow(cnPopup, SW_HIDE);
+        ShowWindow(cidPopup, SW_HIDE);
+        ShowWindow(caPopup, SW_HIDE);
+        ShowWindow(rtPopup, SW_HIDE);
+    }
+    else if(popup == 2){
+        ShowWindow(atPopup, SW_HIDE);
+        ShowWindow(cidPopup, SW_HIDE);
+        ShowWindow(caPopup, SW_HIDE);
+        ShowWindow(rtPopup, SW_HIDE);
+    }
+    else if(popup == 3){
+        ShowWindow(atPopup, SW_HIDE);
+        ShowWindow(cnPopup, SW_HIDE);
+        ShowWindow(caPopup, SW_HIDE);
+        ShowWindow(rtPopup, SW_HIDE);
+    }
+    else if(popup == 4){
+        ShowWindow(atPopup, SW_HIDE);
+        ShowWindow(cnPopup, SW_HIDE);
+        ShowWindow(cidPopup, SW_HIDE);
+        ShowWindow(rtPopup, SW_HIDE);
+    }
+    else if(popup == 5){
+        ShowWindow(atPopup, SW_HIDE);
+        ShowWindow(cnPopup, SW_HIDE);
+        ShowWindow(cidPopup, SW_HIDE);
+        ShowWindow(caPopup, SW_HIDE);
+    }
+return 0;
+}
+// <--- extra functions

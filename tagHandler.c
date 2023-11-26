@@ -1,44 +1,20 @@
 #include "tagHandler.h"
 
-// TODO's: 
-// add timestamp created/changed
-
-
 int arrayHandler(TAG *tag, int option, int *direction){
 
     static TAG *tags = NULL;
     static int tagCount = 0;
 
-    if(option == 0){ // option = 0 adds tags
+    if(option == 0){ // Add tag to array
         if(tagCount == 0){ //  -> malloc
 
             tags = malloc(sizeof(TAG)); 
 
             if (tags == NULL) {
             fprintf(stderr, "Memory allocation failed.\n");
-            exit(EXIT_FAILURE); // to harsh maybe? 
+            exit(EXIT_FAILURE);
             }
-            printf("Timestamp: %s\n", tag->createdTs);
-            strncpy(tags[tagCount].name, tag->name, sizeof(tags[tagCount].name));
-            tags[tagCount].name[sizeof(tags[tagCount].name) - 1] = '\0';
-
-            strncpy(tags[tagCount].idS, tag->idS, sizeof(tags[tagCount].idS));
-            tags[tagCount].idS[sizeof(tags[tagCount].idS) - 1] = '\0';
-
-            tags[tagCount].idD = tag->idD;
-
-            strncpy(tags[tagCount].pass, tag->pass, sizeof(tags[tagCount].pass));
-            tags[tagCount].pass[sizeof(tags[tagCount].pass) - 1] = '\0';
-
-            tags[tagCount].access = tag->access;
-
-            strncpy(tags[tagCount].createdTs, tag->createdTs, sizeof(tags[tagCount].createdTs));
-            tags[tagCount].createdTs[sizeof(tags[tagCount].createdTs) - 1] = '\0';
-
-
-            strncpy(tags[tagCount].changedTs, tag->changedTs, sizeof(tags[tagCount].changedTs));
-            tags[tagCount].changedTs[sizeof(tags[tagCount].changedTs) - 1] = '\0';
-
+            tags[tagCount] = *tag;
 
             if(*direction == 1){
 
@@ -51,34 +27,13 @@ int arrayHandler(TAG *tag, int option, int *direction){
 
         } else { // if tags exists -> realloc
             
-            tags = realloc(tags, sizeof(TAG) * (tagCount + 1)); // this was the clusterfick
-                                                                // tagCount + 1 -> (tagCount + 1) 
+            tags = realloc(tags, sizeof(TAG) * (tagCount + 1)); 
+            
             if (tags == NULL) {  
             fprintf(stderr, "Memory reallocation failed.\n");
             exit(EXIT_FAILURE); 
             }
-
-            printf("%s\n",tag->name);
-            strncpy(tags[tagCount].name, tag->name, sizeof(tags[tagCount].name));
-            tags[tagCount].name[sizeof(tags[tagCount].name) - 1] = '\0';
-
-            strncpy(tags[tagCount].idS, tag->idS, sizeof(tags[tagCount].idS));
-            tags[tagCount].idS[sizeof(tags[tagCount].idS) - 1] = '\0';
-
-            tags[tagCount].idD = tag->idD;
-
-            strncpy(tags[tagCount].pass, tag->pass, sizeof(tags[tagCount].pass));
-            tags[tagCount].pass[sizeof(tags[tagCount].pass) - 1] = '\0';
-
-            tags[tagCount].access = tag->access;
-
-            strncpy(tags[tagCount].createdTs, tag->createdTs, sizeof(tags[tagCount].createdTs));
-            tags[tagCount].createdTs[sizeof(tags[tagCount].createdTs) - 1] = '\0';
-
-
-            strncpy(tags[tagCount].changedTs, tag->changedTs, sizeof(tags[tagCount].changedTs));
-            tags[tagCount].changedTs[sizeof(tags[tagCount].changedTs) - 1] = '\0';
-            
+            tags[tagCount] = *tag;
 
             tagCount++; 
             
@@ -88,9 +43,24 @@ int arrayHandler(TAG *tag, int option, int *direction){
             }
             return 0;
         }
-    }else if(option == 1){ // option = 1 make changes in tag
-            //implement changes
+    }else if(option == 1){ // option = 1 make changes in tag / well, just replace tags
+           
+            for (int i = 0; i < tagCount; ++i) {
 
+                if (tags[i].idD == tag->idD) {
+                    
+                    tags[i] = *tag;
+                    printf("tva: \n");
+                    printf("%s\n",tags[tagCount].name);
+                    printf("%s\n",tags[tagCount].idS);
+                    printf("%d\n",tags[tagCount].idD);
+                    printf("%s\n",tags[tagCount].pass);
+                    printf("%d\n",tags[tagCount].access);
+                    printf("%s\n",tags[tagCount].createdTs);
+                    printf("%s\n",tags[tagCount].changedTs);
+                    break; 
+                }
+            }
 
     }else if(option == 2){ // option = 2 Check array for avaliable idD
         
@@ -138,6 +108,38 @@ int arrayHandler(TAG *tag, int option, int *direction){
             return 0;
 
         }
+    }else if(option == 4){ // remove tag from array
+
+        int indexToRemove = -1;
+
+        // Find tag to remove by its idD
+        for (int i = 0; i < tagCount; ++i) {
+            if (tags[i].idD == tag->idD) {
+                indexToRemove = i;
+                break;
+            }
+        }
+
+        if (indexToRemove != -1) {
+
+            // Fills the gap
+            for (int i = indexToRemove; i < tagCount - 1; ++i) {
+                tags[i] = tags[i + 1];
+            }
+
+            --tagCount;
+            
+            // Resizes memory
+            TAG *temp = realloc(tags, sizeof(TAG) * tagCount); // temp array in case of failure
+            if (temp != NULL) {  
+                tags = temp;
+            } else {
+                fprintf(stderr, "Memory reallocation failed. REMOVE\n");
+                exit(EXIT_FAILURE);
+            }
+        }
+
+
     }else if(option == 8){ // save tags to file and  release memory onExit()
 
 
@@ -148,6 +150,8 @@ int arrayHandler(TAG *tag, int option, int *direction){
     return 0;
 }   
 
+// remove newTag and ChangeTag? they are obsolete as we can just pass the tag directly to arrayHandler.
+// Cleanup later
 void newTag(TAG *tag, int *direction){ // from user dir 0, from file dir 1
     
     TAG newTag;
@@ -173,6 +177,34 @@ void newTag(TAG *tag, int *direction){ // from user dir 0, from file dir 1
 
     arrayHandler(&newTag, 0, direction);
 }
+
+void changeTag(TAG *tag){ 
+
+    TAG changeTag;
+    
+     strncpy(changeTag.name, tag->name, sizeof(changeTag.name) - 1);
+    changeTag.name[sizeof(changeTag.name) - 1] = '\0'; 
+    
+    strncpy(changeTag.idS, tag->idS, sizeof(changeTag.idS) - 1);
+    changeTag.idS[sizeof(changeTag.idS) - 1] = '\0'; 
+
+    changeTag.idD = tag->idD;
+
+    strncpy(changeTag.pass, tag->pass, sizeof(changeTag.pass) - 1);
+    changeTag.pass[sizeof(changeTag.pass) - 1] = '\0';
+
+    changeTag.access = tag->access;
+
+    strncpy(changeTag.createdTs, tag->createdTs, sizeof(changeTag.createdTs) - 1);
+    changeTag.createdTs[sizeof(changeTag.createdTs) - 1] = '\0'; 
+
+    strncpy(changeTag.changedTs, tag->changedTs, sizeof(changeTag.changedTs) - 1);
+    changeTag.changedTs[sizeof(changeTag.changedTs) - 1] = '\0'; 
+
+
+    // arrayHandler(&changeTag, 1,3);
+}
+
 
 int asignIdD(){
 
@@ -226,7 +258,7 @@ int fileReader() {
 
             TAG tag;
             
-            if (sscanf(line, "%255[^,], %1s %d %16s %d %19s %19s", tag.name, tag.idS, &tag.idD, tag.pass, &tag.access, tag.createdTs, tag.changedTs) == 7) {
+            if (sscanf(line, "%255[^,], %1s %d %16s %d %19[^,], %19s", tag.name, tag.idS, &tag.idD, tag.pass, &tag.access, tag.createdTs, tag.changedTs) == 7) {
                 // Process the tag
                 newTag(&tag, &direction);
             } else {
@@ -258,7 +290,7 @@ int fileWriter(TAG *tags, int tagCount) { // add new tags to file
             
             for(int i = 0; i < tagCount; i++){
 
-                fprintf(tagFileW, "%s, %s %d %s %d %s %s\n", tags[i].name, tags[i].idS, tags[i].idD, tags[i].pass, tags[i].access, tags[i].createdTs, tags[i].changedTs);
+                fprintf(tagFileW, "%s, %s %d %s %d %s, %s\n", tags[i].name, tags[i].idS, tags[i].idD, tags[i].pass, tags[i].access, tags[i].createdTs, tags[i].changedTs);
 
             }
         
