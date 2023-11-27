@@ -14,8 +14,9 @@ int arrayHandler(TAG *tag, int option, int *direction){
             fprintf(stderr, "Memory allocation failed.\n");
             exit(EXIT_FAILURE);
             }
+            
             tags[tagCount] = *tag;
-
+            printf("ett: %s\n", tags[tagCount].changedTs);
             if(*direction == 1){
 
                 fileALI(tag);
@@ -34,7 +35,7 @@ int arrayHandler(TAG *tag, int option, int *direction){
             exit(EXIT_FAILURE); 
             }
             tags[tagCount] = *tag;
-
+            printf("ett: %s\n", tags[tagCount].changedTs);
             tagCount++; 
             
             if(*direction == 1){
@@ -51,13 +52,8 @@ int arrayHandler(TAG *tag, int option, int *direction){
                     
                     tags[i] = *tag;
                     printf("tva: \n");
-                    printf("%s\n",tags[tagCount].name);
-                    printf("%s\n",tags[tagCount].idS);
-                    printf("%d\n",tags[tagCount].idD);
-                    printf("%s\n",tags[tagCount].pass);
-                    printf("%d\n",tags[tagCount].access);
-                    printf("%s\n",tags[tagCount].createdTs);
-                    printf("%s\n",tags[tagCount].changedTs);
+                    printf("%s\n",tag->name);
+                    printf("%s\n",tag->changedTs);
                     break; 
                 }
             }
@@ -258,7 +254,7 @@ int fileReader() {
 
             TAG tag;
             
-            if (sscanf(line, "%255[^,], %1s %d %16s %d %19[^,], %19s", tag.name, tag.idS, &tag.idD, tag.pass, &tag.access, tag.createdTs, tag.changedTs) == 7) {
+            if (sscanf(line, "%255[^,], %1s %d %16s %d %19[^,], %19[^,],", tag.name, tag.idS, &tag.idD, tag.pass, &tag.access, tag.createdTs, tag.changedTs) == 7) {
                 // Process the tag
                 newTag(&tag, &direction);
             } else {
@@ -290,7 +286,7 @@ int fileWriter(TAG *tags, int tagCount) { // add new tags to file
             
             for(int i = 0; i < tagCount; i++){
 
-                fprintf(tagFileW, "%s, %s %d %s %d %s, %s\n", tags[i].name, tags[i].idS, tags[i].idD, tags[i].pass, tags[i].access, tags[i].createdTs, tags[i].changedTs);
+                fprintf(tagFileW, "%s, %s %d %s %d %s, %s,\n", tags[i].name, tags[i].idS, tags[i].idD, tags[i].pass, tags[i].access, tags[i].createdTs, tags[i].changedTs);
 
             }
         

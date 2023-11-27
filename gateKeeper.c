@@ -64,6 +64,12 @@
     HWND iliCreated;
     HWND iliChanged;
 
+    // Scan tag Popup
+    HWND stPopup;
+    HWND stMessageLabel;
+    HWND stTagScannedLabel;
+    HWND stTagReggedLabel;
+
     // globalize list Items
     LVITEM lvItem;
   
@@ -1130,6 +1136,51 @@ static BOOL popupRegd = FALSE; // maybe not needed as global? ---> lets try not 
 
     }// <--- Remove Tag Popup
 
+    //Scan Tag Popup
+    else if(i == 6){
+
+        stPopup = CreateWindowEx(
+        0,
+        "popupClass",
+        "",
+        WS_POPUP | WS_VISIBLE,
+        getHwndPos(1) + 270,
+        getHwndPos(2) + 220,
+        260, 
+        160,
+        hwnd, NULL, GetModuleHandle(NULL), NULL);
+
+        stMessageLabel = CreateWindow(
+            "STATIC", 
+            "Scan the tag/card!", 
+            WS_VISIBLE | WS_CHILD,
+            10, 
+            10, 
+            250, 
+            20, 
+            stPopup, NULL, NULL, NULL);
+
+        stTagScannedLabel = CreateWindow(
+            "STATIC", 
+            "", // Read Successful!
+            WS_VISIBLE | WS_CHILD,
+            10, 
+            10, 
+            250, 
+            20, 
+            stPopup, NULL, NULL, NULL);
+
+        stTagReggedLabel = CreateWindow(
+            "STATIC", 
+            "",     // Write Successful!
+            WS_VISIBLE | WS_CHILD,
+            10, 
+            10, 
+            250, 
+            20, 
+            stPopup, NULL, NULL, NULL);
+    }
+
 }
 
 // extra functions --->
@@ -1168,7 +1219,10 @@ void userALI(){ // user add list item <---
     listIdS[0] = (char)toupper(idsBuffer[0]);
     listIdS[1] = '\0';
 
-    // checks for available ID number
+    // checks for available ID number | change this to fetch actual Tag id
+    //int listIdD = getTagId();
+    // reformat getTagId to string, char hexadec[20];
+    // same would have to be done in fileALI();
     int listIdD = asignIdD();   
 
     // create new pass and check if it exists in the array
@@ -1308,7 +1362,8 @@ void fileALI(TAG *tag){ // adds list item from file
     SendMessage(hListView, LVM_INSERTITEM, 0, (LPARAM)&lvItem);
 
     currentListSubItem++;
-
+    
+    // add convertion from hexadecimal to chars and then add with idS
     // converts int to char and adds the chars together
     char idSidD[256];
     sprintf(idSidD, "%s%d", tag->idS, tag->idD);

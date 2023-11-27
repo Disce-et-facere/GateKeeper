@@ -4,13 +4,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include "gateKeeper.h"
 #include "timestamp.h"
 
 typedef struct TAG{
     char name[256];  // ex alex 
     char idS[2];     // ex C = customer V = Visitor E = Employee
-    int idD;         // ex 1,2,3,4 -> etc
+    int idD;        //uint8_t idD[4];  // ex 1,2,3,4 -> etc | change to byte idD[];
     char pass[17];   // Random 16 char pass     
     int access;      // 1 = true 0 = false
     char createdTs[20]; // YYYY-MM-DD HH:MM:SS
