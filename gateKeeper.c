@@ -285,6 +285,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                             userALI();
                             ShowWindow(atPopup, SW_HIDE);
                             SetWindowText(atName, "");
+                            addPopup(6);
                             break;  
                         }
                         
@@ -632,6 +633,7 @@ int createMainContent(){
     lvItem.mask = LVIF_TEXT;
     lvItem.iItem = currentListItems;
     // removes dummies from here -->
+   /* 
     lvItem.iSubItem = 0;
     lvItem.pszText = "John";
     SendMessage(hListView, LVM_INSERTITEM, 0, (LPARAM)&lvItem);
@@ -676,6 +678,7 @@ int createMainContent(){
     SendMessage(hListView, LVM_SETITEM, 0, (LPARAM)&lvItem);
 
     currentListItems++; // added until dummies are removed
+    */
 
     // Create buttons
     atBtn = CreateWindowEx(
@@ -1244,12 +1247,13 @@ void userALI(){ // user add list item <---
     free(tempPass);
 
     char listIdD[12];
+    listIdD[0] = '\0';
     int check;
 
     check = readAndWriteTag(1,listPass, listIdD, sizeof(listIdD)); // gets actual tag id
 
 
-    if(listIdD != NULL){
+    if(listIdD[0] != '\0'){
         SetWindowText(stTagScannedLabel, "Tag Identified!");
     }else if(check == 1){
         SetWindowText(stTagReggedLabel, "Tag Registrated!");
@@ -1305,7 +1309,7 @@ void userALI(){ // user add list item <---
 
     // put IdS and IdD togheter with a seperator |
     char idSidD[16];
-    sprintf(idSidD, "%s | %d", listIdS, listIdD);
+    sprintf(idSidD, "%s | %s", listIdS, listIdD);
     idSidD[sizeof(idSidD)-1] = '\0';
 
     lvItem.iSubItem = currentListSubItem;
@@ -1351,7 +1355,6 @@ void userALI(){ // user add list item <---
     strncpy(tag.idS, listIdS, sizeof(tag.idS) - 1);
     tag.idS[sizeof(tag.idS) - 1] = '\0'; 
 
-    //change idD to byte idD[8]; -> tag.idD[i] = receivedId[i];
     strncpy(tag.idD, listIdD, sizeof(tag.idD));
     tag.idD[sizeof(tag.idD) - 1] = '\0';
 
@@ -1366,7 +1369,7 @@ void userALI(){ // user add list item <---
 
     strcpy(tag.changedTs, "yyyy-mm-dd 00:00:00");
 
-    int direction = 0;
+    //int direction = 0;
 
     //newTag(&tag, &direction);
     arrayHandler(&tag, 0, 0);
@@ -1389,8 +1392,8 @@ void fileALI(TAG *tag){ // adds list item from file
     
     // add convertion from hexadecimal to chars and then add with idS
     // converts int to char and adds the chars together
-    char idSidD[256];
-    sprintf(idSidD, "%s%d", tag->idS, tag->idD);
+       char idSidD[16];
+    sprintf(idSidD, "%s | %s", tag->idS, tag->idD);
     idSidD[sizeof(idSidD)-1] = '\0';
 
     lvItem.iSubItem = currentListSubItem;
@@ -1550,7 +1553,7 @@ void changedTag(int index, int subIndex, char value[255]){
     printf("Ett: \n");
     printf("%s\n",tag.name);
     printf("%s\n",tag.idS);
-    printf("%d\n",tag.idD);
+    printf("%s\n",tag.idD);
     printf("pass: \n");
     printf("%s\n",tag.pass);
     printf("pass: \n");
@@ -1573,10 +1576,10 @@ int removeTag(int index){
     ListView_GetItemText(hListView, index, 1, tempId, sizeof(tempId));
     tempId[sizeof(tempId) - 1] = '\0';
 
-    strncpy(tag.idS, tempId, 1);    // use parts of this for below except IdS parts
+    strncpy(tag.idS, tempId, 1);   
 
     char tempNumber[12];
-    strcpy(tempNumber, tempId + 4);   // use parts of this for below except IdS parts
+    strcpy(tempNumber, tempId + 4);   
 
     strncpy(tag.idD, tempNumber, sizeof(tag.idD) - 1);
     tag.idD[sizeof(tag.idD) - 1] = '\0';
@@ -1599,7 +1602,7 @@ int removeTag(int index){
     printf("Ett: \n");
     printf("%s\n",tag.name);
     printf("%s\n",tag.idS);
-    printf("%d\n",tag.idD);
+    printf("%s\n",tag.idD);
     printf("%s\n",tag.pass);
     printf("%d\n",tag.access);
     printf("%s\n",tag.createdTs);

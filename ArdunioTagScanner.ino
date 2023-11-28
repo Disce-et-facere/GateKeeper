@@ -35,17 +35,21 @@ void setup() {
 void loop() {
 
     if (Serial.available() > 0) {
-    // Read the incoming message
-    String message = Serial.readString();
+  
+        String message = Serial.readString();
 
-    // Process the message
-    if (message.startsWith("ADD_TAG")) {
-      addTag();
-    } else {
-      Serial.println("REMOTE_OPEN");
-      //remoteOpen();
+        if (message.startsWith("ADD_TAG")) {
+
+          addTag();
+
+        } else if(message.startsWith("REMOTE_OPEN")){
+          
+          remoteOpen();
+          
+        }else{
+          Serial.println("Unknown Message...");
+        }
     }
-  }
 
   byte sector         = 1;
   byte blockAddr      = 4;
@@ -141,6 +145,14 @@ void loop() {
         mfrc522.PCD_StopCrypto1();
 
   }
+
+  void remoteOpen(){
+
+    digitalWrite((GREEN_LED_PIN, HIGH); // Turn on the LED (HIGH)
+    delay(3000);  // Wait for 1 second
+    digitalWrite((GREEN_LED_PIN, LOW);
+    return;
+  } 
 
   Serial.println(F("Normal mode: Scan tag to open door."));
   Serial.println();
