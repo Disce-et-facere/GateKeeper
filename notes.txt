@@ -40,3 +40,6 @@ tags[tagCount].createdTs[sizeof(tags[tagCount].createdTs) - 1] = '\0';
 strncpy(tags[tagCount].changedTs, tag->changedTs, sizeof(tags[tagCount].changedTs));
 tags[tagCount].changedTs[sizeof(tags[tagCount].changedTs) - 1] = '\0';
 */
+
+
+E | 6A 66 68 44 6D 4D 50 4E 25 41 73 34 38 4C 2A 6A

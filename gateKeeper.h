@@ -7,6 +7,7 @@
 #include <ctype.h>
 #include "randomPass.h"
 #include "tagHandler.h"
+#include "arduinoHandler.h"
 
 #define TIMER_ENABLE_BUTTONS 1
 #define BUTTON_ENABLE_DELAY 100

@@ -3,7 +3,8 @@
 
 #include <stdio.h>
 #include <Windows.h>
+#include "tagHandler.h"
 
-#define SERIAL_PORT "/dev/ttyUSB0"  // Change this to your actual port
+#define MAX_BUFFER_SIZE 17
 
 #endif

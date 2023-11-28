@@ -45,7 +45,8 @@ int arrayHandler(TAG *tag, int option, int *direction){
             return 0;
         }
     }else if(option == 1){ // option = 1 make changes in tag / well, just replace tags
-           
+
+            // need to change this -> idD will be bytes array[];
             for (int i = 0; i < tagCount; ++i) {
 
                 if (tags[i].idD == tag->idD) {
@@ -58,7 +59,7 @@ int arrayHandler(TAG *tag, int option, int *direction){
                 }
             }
 
-    }else if(option == 2){ // option = 2 Check array for avaliable idD
+    }else if(option == 2){ // check if tag exist by pass, and then check if tag has access or not
         
         int availableIdD = 1;
 
@@ -107,7 +108,7 @@ int arrayHandler(TAG *tag, int option, int *direction){
     }else if(option == 4){ // remove tag from array
 
         int indexToRemove = -1;
-
+        // change this to be compatible with byte array[4]
         // Find tag to remove by its idD
         for (int i = 0; i < tagCount; ++i) {
             if (tags[i].idD == tag->idD) {
@@ -146,71 +147,6 @@ int arrayHandler(TAG *tag, int option, int *direction){
     return 0;
 }   
 
-// remove newTag and ChangeTag? they are obsolete as we can just pass the tag directly to arrayHandler.
-// Cleanup later
-void newTag(TAG *tag, int *direction){ // from user dir 0, from file dir 1
-    
-    TAG newTag;
-
-    strncpy(newTag.name, tag->name, sizeof(newTag.name) - 1);
-    newTag.name[sizeof(newTag.name) - 1] = '\0'; 
-    
-    strncpy(newTag.idS, tag->idS, sizeof(newTag.idS) - 1);
-    newTag.idS[sizeof(newTag.idS) - 1] = '\0'; 
-
-    newTag.idD = tag->idD;
-
-    strncpy(newTag.pass, tag->pass, sizeof(newTag.pass) - 1);
-    newTag.pass[sizeof(newTag.pass) - 1] = '\0';
-
-    newTag.access = tag->access;
-
-    strncpy(newTag.createdTs, tag->createdTs, sizeof(newTag.createdTs) - 1);
-    newTag.createdTs[sizeof(newTag.createdTs) - 1] = '\0'; 
-
-    strncpy(newTag.changedTs, tag->changedTs, sizeof(newTag.changedTs) - 1);
-    newTag.changedTs[sizeof(newTag.changedTs) - 1] = '\0'; 
-
-    arrayHandler(&newTag, 0, direction);
-}
-
-void changeTag(TAG *tag){ 
-
-    TAG changeTag;
-    
-     strncpy(changeTag.name, tag->name, sizeof(changeTag.name) - 1);
-    changeTag.name[sizeof(changeTag.name) - 1] = '\0'; 
-    
-    strncpy(changeTag.idS, tag->idS, sizeof(changeTag.idS) - 1);
-    changeTag.idS[sizeof(changeTag.idS) - 1] = '\0'; 
-
-    changeTag.idD = tag->idD;
-
-    strncpy(changeTag.pass, tag->pass, sizeof(changeTag.pass) - 1);
-    changeTag.pass[sizeof(changeTag.pass) - 1] = '\0';
-
-    changeTag.access = tag->access;
-
-    strncpy(changeTag.createdTs, tag->createdTs, sizeof(changeTag.createdTs) - 1);
-    changeTag.createdTs[sizeof(changeTag.createdTs) - 1] = '\0'; 
-
-    strncpy(changeTag.changedTs, tag->changedTs, sizeof(changeTag.changedTs) - 1);
-    changeTag.changedTs[sizeof(changeTag.changedTs) - 1] = '\0'; 
-
-
-    // arrayHandler(&changeTag, 1,3);
-}
-
-
-int asignIdD(){
-
-    TAG tag;
-    int direction = 3; // 3 isnt used -> leads nowhere
-
-    int newIdD = arrayHandler(&tag, 2, &direction);
-
-    return newIdD;
-}
 
 int checkPass(char tPass[17]){
     TAG tag;
@@ -238,7 +174,7 @@ void onExit(){
 }
 
 // Reads tags from file
-int fileReader() {
+int fileReader() { // change this to be compatible with byte array[4]
 
     FILE *tagFileR = fopen("tags.txt", "r");
     int direction = 1;
@@ -254,9 +190,10 @@ int fileReader() {
 
             TAG tag;
             
-            if (sscanf(line, "%255[^,], %1s %d %16s %d %19[^,], %19[^,],", tag.name, tag.idS, &tag.idD, tag.pass, &tag.access, tag.createdTs, tag.changedTs) == 7) {
+            if (sscanf(line, "%255[^,], %1s %11s %16s %d %19[^,], %19[^,],", tag.name, tag.idS, &tag.idD, tag.pass, &tag.access, tag.createdTs, tag.changedTs) == 7) {
                 // Process the tag
-                newTag(&tag, &direction);
+                //newTag(&tag, &direction);
+                arrayHandler(&tag, 0, direction);
             } else {
                 fprintf(stderr, "Error parsing line: %s\n", line);
                 
@@ -273,7 +210,7 @@ int fileReader() {
 }
 
 // saves tag to file
-int fileWriter(TAG *tags, int tagCount) { // add new tags to file
+int fileWriter(TAG *tags, int tagCount) { // add new tags to file // change this to be compatible with byte array[4]
 
     if(tagCount > 0){
 
@@ -286,7 +223,7 @@ int fileWriter(TAG *tags, int tagCount) { // add new tags to file
             
             for(int i = 0; i < tagCount; i++){
 
-                fprintf(tagFileW, "%s, %s %d %s %d %s, %s,\n", tags[i].name, tags[i].idS, tags[i].idD, tags[i].pass, tags[i].access, tags[i].createdTs, tags[i].changedTs);
+                fprintf(tagFileW, "%s, %s %s %s %d %s, %s,\n", tags[i].name, tags[i].idS, tags[i].idD, tags[i].pass, tags[i].access, tags[i].createdTs, tags[i].changedTs);
 
             }
         
