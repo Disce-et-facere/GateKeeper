@@ -7,6 +7,6 @@
 
 #define MAX_BUFFER_SIZE 17
 
-int readAndWriteTag(int option, char pass[17], unsigned char *receivedId, size_t idSize);
+int readAndWriteTag(int option, char pass[17], char *receivedId, size_t idSize);
 
 #endif

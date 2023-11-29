@@ -129,9 +129,13 @@ int arrayHandler(TAG *tag, int option, int *direction){
 
     }else if(option == 8){ // save tags to file and  release memory onExit()
 
-
+        char listPassDummie[17];
+        char listIdDDummie[12];
+        listIdDDummie[0] = '\0';
+        readAndWriteTag(3,listPassDummie, listIdDDummie, sizeof(listIdDDummie));
         fileWriter(tags, tagCount);
         free(tags);
+
     
     }
     return 0;

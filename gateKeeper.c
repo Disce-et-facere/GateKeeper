@@ -265,7 +265,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                         char listPassDummie[17];
                         char listIdDDummie[12];
                         listIdDDummie[0] = '\0';
-                        readAndWriteTag(2,listPassDummie, listIdDDummie, sizeof(listIdDDummie));
+                        readAndWriteTag(2,listPassDummie, &listIdDDummie, sizeof(listIdDDummie));
                         //addPopup(6);
                         //fileReader();
                         //onExit();
@@ -286,10 +286,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                             MessageBox(hwnd, "Jesus that's a long name!\n Its need to be shorter, max 254 characters. ", "Text is to Long!", MB_ICONEXCLAMATION | MB_OK);
                             break; 
                         }else{
+                            addPopup(6);
                             userALI();
                             ShowWindow(atPopup, SW_HIDE);
                             SetWindowText(atName, "");
-                            addPopup(6);
+                            
                             break;  
                         }
                         
@@ -1265,6 +1266,8 @@ void userALI(){ // user add list item <---
         ShowWindow(stPopup, SW_HIDE);
         SetWindowText(stTagScannedLabel, "");
         SetWindowText(stTagReggedLabel, "");
+    }else{
+        SetWindowText(stTagScannedLabel, "ERROR READING TAG");
     }
     
     

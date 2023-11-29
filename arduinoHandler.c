@@ -1,50 +1,59 @@
 #include"arduinoHandler.h"
 
 
-int readAndWriteTag(int option, char pass[17], char *receivedId, size_t idSize) {
+int readAndWriteTag(int option, char pass[17], char* receivedId, size_t idSize) {
 
-    int mode = 1;
+    static int mode = 1;
+    static int portOpen = 0;
 
     HANDLE hSerial;
     DCB dcbSerialParams = { 0 };
     COMMTIMEOUTS timeouts = { 0 };
     char buffer[MAX_BUFFER_SIZE];
 
-    // Open a handle to the COM3 port
-    hSerial = CreateFile(("COM3"), GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-    if (hSerial == INVALID_HANDLE_VALUE) {
-        fprintf(stderr, "Error opening COM3 port\n");
-        return 1;
-    }
+    if(portOpen == 0){
 
-    // Set serial port parameters
-    dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
-    if (!GetCommState(hSerial, &dcbSerialParams)) {
-        fprintf(stderr, "Error getting serial port state\n");
-        CloseHandle(hSerial);
-        return 1;
-    }
+        // Open a handle to the COM3 port
+        hSerial = CreateFile(("COM3"), GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+        if (hSerial == INVALID_HANDLE_VALUE) {
+            fprintf(stderr, "Error opening COM3 port\n");
+            return 1;
+        }
 
-    dcbSerialParams.BaudRate = CBR_9600;
-    dcbSerialParams.ByteSize = 8;
-    dcbSerialParams.StopBits = ONESTOPBIT;
-    dcbSerialParams.Parity = NOPARITY;
+    
 
-    if (!SetCommState(hSerial, &dcbSerialParams)) {
-        fprintf(stderr, "Error setting serial port state\n");
-        CloseHandle(hSerial);
-        return 1;
-    }
 
-    // Set timeouts
-    timeouts.ReadIntervalTimeout = 50;
-    timeouts.ReadTotalTimeoutConstant = 50;
-    timeouts.ReadTotalTimeoutMultiplier = 10;
+        // Set serial port parameters
+        dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
+        if (!GetCommState(hSerial, &dcbSerialParams)) {
+            fprintf(stderr, "Error getting serial port state\n");
+            CloseHandle(hSerial);
+            return 1;
+        }
 
-    if (!SetCommTimeouts(hSerial, &timeouts)) {
-        fprintf(stderr, "Error setting timeouts\n");
-        CloseHandle(hSerial);
-        return 1;
+        dcbSerialParams.BaudRate = CBR_9600;
+        dcbSerialParams.ByteSize = 8;
+        dcbSerialParams.StopBits = ONESTOPBIT;
+        dcbSerialParams.Parity = NOPARITY;
+
+        if (!SetCommState(hSerial, &dcbSerialParams)) {
+            fprintf(stderr, "Error setting serial port state\n");
+            CloseHandle(hSerial);
+            return 1;
+        }
+
+        // Set timeouts
+        timeouts.ReadIntervalTimeout = 50;
+        timeouts.ReadTotalTimeoutConstant = 50;
+        timeouts.ReadTotalTimeoutMultiplier = 10;
+
+        if (!SetCommTimeouts(hSerial, &timeouts)) {
+            fprintf(stderr, "Error setting timeouts\n");
+            CloseHandle(hSerial);
+            return 1;
+        }
+
+        portOpen++;
     }
 
     if(option == 1){ // registrate new tag
@@ -119,7 +128,7 @@ int readAndWriteTag(int option, char pass[17], char *receivedId, size_t idSize) 
                             break;
                         }
                     } else {
-                        fprintf(stderr, "Incomplete data read\n");
+                        fprintf(stderr, "Incomplete data read, add tag\n");
                         break;
                     }
                 } else {
@@ -139,13 +148,14 @@ int readAndWriteTag(int option, char pass[17], char *receivedId, size_t idSize) 
         const char* doorMessage = "REMOTE_OPEN";
 
                 DWORD bytesWritten;
+
                 if (!WriteFile(hSerial, doorMessage, strlen(doorMessage), &bytesWritten, NULL)) {
                     fprintf(stderr, "Error writing to serial port\n");
                 } else {
                     printf("Sent message: %s\n", doorMessage);
                 }
 
-        mode = 1;
+        //mode = 1;
 
     }else if(option == 3){  // close Serial one exit
 
@@ -172,7 +182,7 @@ int readAndWriteTag(int option, char pass[17], char *receivedId, size_t idSize) 
 
                 printf("Received pass: %s\n", tempPass);
             } else {
-                fprintf(stderr, "Incomplete data read\n");
+                fprintf(stderr, "Incomplete data read, normal mode\n");
             }
         } else {
             fprintf(stderr, "Error reading from serial port\n");
