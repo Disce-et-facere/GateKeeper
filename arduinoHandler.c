@@ -76,23 +76,18 @@ int readAndWriteTag(int option, char pass[17], char *receivedId, size_t idSize) 
                 }
             }
 
-            if(recID == 0){
+            if (recID == 0) {
                 DWORD bytesRead;
                 if (ReadFile(hSerial, receivedId, idSize, &bytesRead, NULL)) {
-                   if (bytesRead > 0) {
-                        printf("Received ID in hex: "); // change to receive as string/char[]
-                        for (size_t i = 0; i < bytesRead; i++) {
-                            printf("0x%02X ", receivedId[i]);
-                            recID++;
-                        }
-                        printf("\n");
-                    
+                    if (bytesRead > 0) {
+                        printf("Received ID as string: "); 
+                        receivedId[bytesRead] = '\0';  // Null-terminate the received data
+                        printf("%s\n", receivedId);
+                        recID++;
                     } else {
                         fprintf(stderr, "Error reading from serial port\n");
-
-                    }   
+                    }
                 }
-
             }
 
             if(passSent == 0){

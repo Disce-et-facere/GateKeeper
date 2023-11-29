@@ -49,7 +49,7 @@ int arrayHandler(TAG *tag, int option, int *direction){
             // need to change this -> idD will be bytes array[];
             for (int i = 0; i < tagCount; ++i) {
 
-                if (tags[i].idD == tag->idD) {
+                if (strcmp(tags[i].idD, tag->idD) == 0) {
                     
                     tags[i] = *tag;
                     printf("tva: \n");
@@ -59,30 +59,19 @@ int arrayHandler(TAG *tag, int option, int *direction){
                 }
             }
 
-    }else if(option == 2){ // check if tag exist by pass, and then check if tag has access or not
+    }else if(option == 2){ // TODO: check if tag exist by pass, and then check if tag has access or not
         
-        int availableIdD = 1;
-
-        if(tagCount == 0){
-
-            return 1;
-           
-        }else{
-          
-            int i = 0;
-
-            while(i < tagCount){
-                    
-                    if(tags[i].idD == availableIdD){ 
-                        availableIdD++;
-                        i = 0;
-                    }else{
-                        i++;
-                    }
+        for (int i = 0; i < tagCount; i++) {
+            if (strcmp(tags[i].pass, tag->pass) == 0) {
+                
+                return tags[i].access;
             }
-
-            return availableIdD;
         }
+
+    
+        return -1; 
+    
+
 
     }else if(option == 3){ // checks if new password exists
 
@@ -112,7 +101,7 @@ int arrayHandler(TAG *tag, int option, int *direction){
         // Find tag to remove by its idD | change to by its pass -> strcmp 
         
         for (int i = 0; i < tagCount; ++i) {
-            if (tags[i].idD == tag->idD) {
+            if (strcmp(tags[i].pass, tag->pass) == 0) {
                 indexToRemove = i;
                 break;
             }

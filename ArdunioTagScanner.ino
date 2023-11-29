@@ -3,12 +3,13 @@
 
 #define RST_PIN         9 
 #define SS_PIN          10
-#define GREEN_LED_PIN   3
-#define RED_LED_PIN     4
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);   
 
 MFRC522::MIFARE_Key key;
+
+#define GREEN_LED_PIN   3
+#define RED_LED_PIN     4
 
 void setup() {
     Serial.begin(9600);
@@ -38,11 +39,11 @@ void loop() {
         String message = Serial.readString();
 
         if (message.startsWith("ADD_TAG")) {
-          Serial.println("Add Tag...");
+
           addTag();
 
         } else if(message.startsWith("REMOTE_OPEN")){
-          Serial.println("Remote Door...");
+          
           remoteOpen();
           
         }else{
@@ -213,3 +214,4 @@ void loop() {
   mfrc522.PICC_HaltA();
   
   mfrc522.PCD_StopCrypto1();
+}

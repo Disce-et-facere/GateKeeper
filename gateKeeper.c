@@ -262,10 +262,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                     }
                     case 1012:
                     {
-                        char ListPassDummie[17];
+                        char listPassDummie[17];
                         char listIdDDummie[12];
                         listIdDDummie[0] = '\0';
-                        readAndWriteTag(1,listPassDummie, listIdDDummie, sizeof(listIdDDummie));
+                        readAndWriteTag(2,listPassDummie, listIdDDummie, sizeof(listIdDDummie));
                         //addPopup(6);
                         //fileReader();
                         //onExit();
