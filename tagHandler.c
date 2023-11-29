@@ -109,7 +109,8 @@ int arrayHandler(TAG *tag, int option, int *direction){
 
         int indexToRemove = -1;
         // change this to be compatible with byte array[4]
-        // Find tag to remove by its idD
+        // Find tag to remove by its idD | change to by its pass -> strcmp 
+        
         for (int i = 0; i < tagCount; ++i) {
             if (tags[i].idD == tag->idD) {
                 indexToRemove = i;

@@ -1,7 +1,7 @@
 #include"arduinoHandler.h"
 
 
-int readAndWriteTag(int option, char pass[17], unsigned char *receivedId, size_t idSize) {
+int readAndWriteTag(int option, char pass[17], char *receivedId, size_t idSize) {
 
     int mode = 1;
 
@@ -80,7 +80,7 @@ int readAndWriteTag(int option, char pass[17], unsigned char *receivedId, size_t
                 DWORD bytesRead;
                 if (ReadFile(hSerial, receivedId, idSize, &bytesRead, NULL)) {
                    if (bytesRead > 0) {
-                        printf("Received ID in hex: ");
+                        printf("Received ID in hex: "); // change to receive as string/char[]
                         for (size_t i = 0; i < bytesRead; i++) {
                             printf("0x%02X ", receivedId[i]);
                             recID++;
