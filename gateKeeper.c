@@ -1257,6 +1257,7 @@ void userALI(){ // user add list item <---
 
     check = readAndWriteTag(1,listPass, listIdD, sizeof(listIdD)); // gets actual tag id
 
+    printf("listidD in gK: %s", listIdD);
 
     if(listIdD[0] != '\0'){
         SetWindowText(stTagScannedLabel, "Tag Identified!");

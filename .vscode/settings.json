@@ -47,6 +47,7 @@
         "stdbool.h": "c",
         "timestamp.h": "c",
         "ctype.h": "c",
-        "arduinoHandler.h": "c"
+        "arduinoHandler.h": "c",
+        "cstddef": "cpp"
     }
 }

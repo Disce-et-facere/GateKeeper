@@ -20,9 +20,6 @@ int readAndWriteTag(int option, char pass[17], char* receivedId, size_t idSize) 
             return 1;
         }
 
-    
-
-
         // Set serial port parameters
         dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
         if (!GetCommState(hSerial, &dcbSerialParams)) {
@@ -56,91 +53,79 @@ int readAndWriteTag(int option, char pass[17], char* receivedId, size_t idSize) 
         portOpen++;
     }
 
-    if(option == 1){ // registrate new tag
-                     // 1. send ADD_TAG 
-                     // 2. recieve Tag id
-                     // 3 send id to GUI
-                     // 4. send pass as bytes
-                     // 5. recieve int as byte 1 or 0;
-                     // 6. send int to GUI
-    mode = 0;
+    if(option == 1){
 
-    int initMsg = 0;
-    int recID = 0;
-    int passSent = 0;
-    int aOk = 0;
+        mode = 0;
+
+        int initMsg = 0;
+
+        DWORD bytesRead;
+        DWORD bytesWritten;
+
+        if(initMsg == 0){
+
+            const char* initMessage = "ADD_TAG";
+
+            if (!WriteFile(hSerial, initMessage, strlen(initMessage), &bytesWritten, NULL)) {
+                fprintf(stderr, "Error writing to serial port\n");
+            } else {
+                printf("Sent message: %s\n", initMessage);
+                initMsg++;
+            }
+
+        }
+
+        while(1){
+
+            if (ReadFile(hSerial, receivedId, idSize, &bytesRead, NULL)) {
+
+                if (bytesRead == 11) {
+                    receivedId[bytesRead] = '\0'; 
+                    printf("Received ID as string: %s\n", receivedId);
+                    break;
+                } else {
+                    fprintf(stderr, "Receiving ID Error, received: %s\n", receivedId);
+                }
+            }
+        }
+
+        unsigned char passBytes[16];
+        for (int i = 0; i < 16; ++i) {
+        passBytes[i] = (unsigned char)pass[i];
+        }
+        
+        if (!WriteFile(hSerial, passBytes, sizeof(passBytes), &bytesWritten, NULL)) {
+            fprintf(stderr, "Error writing Pass to serial port\n");
+        } else {
+            printf("Sent message: ");
+            for (int i = 0; i < sizeof(passBytes); ++i) {
+                printf("%02X ", passBytes[i]);
+            }
+            printf("\n");
+        }
 
         while(1){
             
-            const char* initMessage = "ADD_TAG";
+            char success[8];
 
-            if(initMsg == 0){
-                DWORD bytesWritten;
-                if (!WriteFile(hSerial, initMessage, strlen(initMessage), &bytesWritten, NULL)) {
-                    fprintf(stderr, "Error writing to serial port\n");
+            if (ReadFile(hSerial, receivedId, idSize, &bytesRead, NULL)) {
+
+                if (bytesRead == 7) {
+                    success[sizeof(success) - 1 ] = '\0'; 
+                    printf("Received Success as string: %s\n", receivedId);
+                    return 1;
                     break;
                 } else {
-                    printf("Sent message: %s\n", initMessage);
-                    initMsg++;
-                }
-            }
-
-            if (recID == 0) {
-                DWORD bytesRead;
-                if (ReadFile(hSerial, receivedId, idSize, &bytesRead, NULL)) {
-                    if (bytesRead > 0) {
-                        printf("Received ID as string: "); 
-                        receivedId[bytesRead] = '\0';  // Null-terminate the received data
-                        printf("%s\n", receivedId);
-                        recID++;
-                    } else {
-                        fprintf(stderr, "Error reading from serial port\n");
-                    }
-                }
-            }
-
-            if(passSent == 0){
-                DWORD bytesWritten;
-                if (!WriteFile(hSerial, pass, strlen(pass), &bytesWritten, NULL)) {
-                    fprintf(stderr, "Error writing to serial port\n");
-                    break;
-                } else {
-                    printf("Sent message: %s\n", pass);
-                    passSent++;
-                }
-            }
-
-            if(aOk == 0){
-                int response;
-                DWORD bytesRead;
-                if (ReadFile(hSerial, &response, sizeof(response), &bytesRead, NULL)) {
-                   if (bytesRead == sizeof(response)) {
-                        if (response == 1) {
-                            printf("Success :-) received from Arduino\n");
-                            return 1;
-                            break;
-                        } else if (response == 0) {
-                            printf("Failure :-( received from Arduino\n");
-                            break;
-                            return 0;
-                        } else {
-                            printf("Unexpected response received from Arduino: %d\n", response);
-                            break;
-                        }
-                    } else {
-                        fprintf(stderr, "Incomplete data read, add tag\n");
-                        break;
-                    }
-                } else {
-                    fprintf(stderr, "Error reading from serial port\n");
+                    fprintf(stderr, "Receiving Success Error, received: %s\n", receivedId);
+                    return 0;
                     break;
                 }
-
             }
-
 
         }
+
         mode = 1;
+
     }else if(option == 2){  // Remote Open Door
 
         mode = 0;
@@ -155,7 +140,7 @@ int readAndWriteTag(int option, char pass[17], char* receivedId, size_t idSize) 
                     printf("Sent message: %s\n", doorMessage);
                 }
 
-        //mode = 1;
+        mode = 1;
 
     }else if(option == 3){  // close Serial one exit
 
@@ -164,18 +149,21 @@ int readAndWriteTag(int option, char pass[17], char* receivedId, size_t idSize) 
 
     }
 
+    char tempPass[17];
+    byte receivedPass[16];
+    TAG tag;
+
     while(mode){
     // send pass to arrayHandler(); if return is 1 send 1 to arduino and if 0, the same
-        char tempPass[17];
-        byte receivedPass[16];
-        TAG tag;
+       
         DWORD bytesRead;
+        DWORD bytesWritten;
 
         if (ReadFile(hSerial, receivedPass, sizeof(receivedPass), &bytesRead, NULL)) {
-            if (bytesRead == sizeof(receivedPass)) {
-            
+            if (bytesRead == 16) {
+
                 // Convert the received bytes to a string
-                for (size_t i = 0; i < 17; i++) {
+                for (size_t i = 0; i < bytesRead; i++) {
                     tempPass[i] = (char)receivedPass[i];
                 }
                 tempPass[sizeof(tempPass) - 1] = '\0';
@@ -190,12 +178,26 @@ int readAndWriteTag(int option, char pass[17], char* receivedId, size_t idSize) 
         strncpy(tag.pass, tempPass, sizeof(tag.pass) - 1);
         tag.pass[sizeof(tag.pass) - 1] = '\0';
 
-        if(arrayHandler(&tag, 8, 3)){
+        if(arrayHandler(&tag, 2, 3)){
 
+            const char* greenLight = "YES";
+            
+            if (!WriteFile(hSerial, greenLight, strlen(greenLight), &bytesWritten, NULL)) {
+
+                fprintf(stderr, "Error writing to serial port\n");
+
+            }
+
+        }else{
+
+            const char* redLight = "NOT";
+
+            if (!WriteFile(hSerial, redLight, strlen(redLight), &bytesWritten, NULL)) {
+                fprintf(stderr, "Error writing to serial port\n");
+            }
         }
-
         
     }
 
-    return 0;
+    return 3;
 }

@@ -97,7 +97,7 @@ int arrayHandler(TAG *tag, int option, int *direction){
     }else if(option == 4){ // remove tag from array
 
         int indexToRemove = -1;
-        // change this to be compatible with byte array[4]
+        // change this to be compatible with char array[4]
         // Find tag to remove by its idD | change to by its pass -> strcmp 
         
         for (int i = 0; i < tagCount; ++i) {
