@@ -1,98 +1,82 @@
-#include "arduinoHandler.h"
+#include <Windows.h>
+#include <stdio.h>
+#include <string.h>
 
+#define MAX_BUFFER_SIZE 256
 
-// Globals
+// Define your TAG struct
+typedef struct {
+    char id[12];
+    char pass[17];
+    char success[7];
+    // Add other fields if needed
+} MESSAGE;
+
+// Global variables for shared data
 volatile MESSAGE sharedMessage;
 CRITICAL_SECTION messageCriticalSection;
 HANDLE hListenThread = NULL;
 HANDLE hSerial;
 HANDLE hExitEvent;
-enum State currentState = SEND_PASS;
 
-// Function for handling Arduino events and update data
+// Function to handle Arduino events and update shared data
 void HandleArduinoEvent(HANDLE hSerial) {
     DWORD bytesRead;
     char buffer[MAX_BUFFER_SIZE];
 
-     // Read tag pass
-    if (ReadFile(hSerial, buffer, 32, &bytesRead, NULL) && bytesRead == 32) {
-        // Null-terminate the received data
-        buffer[bytesRead] = '\0';
-        printf("NAPPAR");
-        // Check if the received data starts and ends with the expected prefix and suffix
-        const char* prefix = "TAGPASS:";
-        const char* suffix = ":TAGPASS";
-        size_t prefixLength = strlen(prefix);
-        size_t suffixLength = strlen(suffix);
+    // Read tag ID
+    if (ReadFile(hSerial, buffer, 11, &bytesRead, NULL) && bytesRead == 11) {
+        buffer[11] = '\0';
+        EnterCriticalSection(&messageCriticalSection);
+        strncpy(sharedMessage.id, buffer, sizeof(sharedMessage.id));
+        sharedMessage.id[sizeof(sharedMessage.id) - 1] = '\0';
+        LeaveCriticalSection(&messageCriticalSection);
+    }
 
-        if (strncmp(buffer, prefix, prefixLength) == 0 &&
-            strncmp(buffer + bytesRead - suffixLength, suffix, suffixLength) == 0) {
+    // Read tag pass
+    if (ReadFile(hSerial, buffer, 50, &bytesRead, NULL) && bytesRead == 50) {
+        buffer[50] = '\0';
+        const char* prefix = "A:";
+        char* passStart = strstr(buffer, prefix);
+        char* formatedPass[17];
 
-            // Extract the password from the received data
-            char formattedPass[17];
-            strncpy(formattedPass, buffer + prefixLength, 16);
-            formattedPass[16] = '\0';
+        if (passStart != NULL) {
+        
+            passStart += strlen(prefix);
 
-            // Process the received password
-            ProcessReceivedPass(formattedPass);
-
-            // Update shared message
-            EnterCriticalSection(&messageCriticalSection);
-            strncpy((char*)sharedMessage.pass, formattedPass, sizeof(sharedMessage.pass));
-            sharedMessage.pass[sizeof(sharedMessage.pass) - 1] = '\0';
-            LeaveCriticalSection(&messageCriticalSection);
+            hexStringToCharArray(passStart, formatedPass);
+            
         } else {
             
-            printf("Invalid message format\n");
-            currentState = ERROR_STATE;
         }
-    }
-   
-    // Read tag ID
-   else if (ReadFile(hSerial, buffer, 8, &bytesRead, NULL) && bytesRead == 8) {
-            buffer[8] = '\0'; // Null-terminate at the "#" position
-            EnterCriticalSection(&messageCriticalSection);
-            strncpy((char*)sharedMessage.id, buffer, sizeof(sharedMessage.id));
-            sharedMessage.id[sizeof(sharedMessage.id) - 1] = '\0';
-            LeaveCriticalSection(&messageCriticalSection);
-            printf("ID: %s\n", buffer);
-            currentState = SET_ID;
+        EnterCriticalSection(&messageCriticalSection);
+        strncpy(sharedMessage.pass, formatedPass, sizeof(sharedMessage.pass));
+        sharedMessage.pass[sizeof(sharedMessage.pass) - 1] = '\0';
+        LeaveCriticalSection(&messageCriticalSection);
     }
 
     // Read success message
-    else if (ReadFile(hSerial, buffer, 7, &bytesRead, NULL) && bytesRead == 7) {
-        buffer[7] = '\0';
-        printf("Buffer 3: %s\n", buffer);
+    if (ReadFile(hSerial, buffer, 7, &bytesRead, NULL) && bytesRead == 7) {
+        buffer[6] = '\0';
         EnterCriticalSection(&messageCriticalSection);
-        strncpy((char*)sharedMessage.success, buffer, sizeof(sharedMessage.success));
+        strncpy(sharedMessage.success, buffer, sizeof(sharedMessage.success));
         sharedMessage.success[sizeof(sharedMessage.success) - 1] = '\0';
         LeaveCriticalSection(&messageCriticalSection);
-        //currentState = RECEIVE_OK;
     }
-    //printf("Still Running...\n");
 }
-
-
 
 // Function to get the latest shared data from the main thread
 void GetLatestTag(MESSAGE* message) {
     EnterCriticalSection(&messageCriticalSection);
     // Copy the shared data to the provided TAG struct
-    memcpy(message, &sharedMessage, sizeof(MESSAGE));
+    *message = sharedMessage;
     LeaveCriticalSection(&messageCriticalSection);
 }
 
 void SendDataToArduino(HANDLE hSerial, const char* data) {
     DWORD bytesWritten;
-    if (!WriteFile(hSerial, data, (DWORD)strlen(data), &bytesWritten, NULL)) {
+    if (!WriteFile(hSerial, data, strlen(data), &bytesWritten, NULL)) {
         fprintf(stderr, "Error writing to serial port\n");
-    }else{
-        //printf("Sent message: %s\n", data);
-
-        if (!FlushFileBuffers(hSerial)) {
-    fprintf(stderr, "Error flushing file buffers. Error code: %lu\n", GetLastError());
-}
-
     }
 }
 
@@ -103,21 +87,21 @@ DWORD WINAPI ListenThreadFunction(LPVOID lpParam) {
 
     while (1) {
 
-        //printf("LooP init..\n");
+        
         if (WaitForSingleObject(hExitEvent, 0) == WAIT_OBJECT_0) {
             break; 
         }
-            HandleArduinoEvent(hSerial);
-        /*if (WaitCommEvent(hSerial, &dwEventMask, NULL)) {
+
+        if (WaitCommEvent(hSerial, &dwEventMask, NULL)) {
             if (dwEventMask & EV_RXCHAR) {
         
-                
+                HandleArduinoEvent(hSerial);
 
             }
             
         } else {
             fprintf(stderr, "Error waiting for communication event\n");
-        }*/
+        }
     }
 
     return 0;
@@ -150,32 +134,12 @@ void CleanupResources() {
 
 }
 
-void ProcessReceivedPass(const char* pass) {
-
-    MESSAGE latestMessage;
-    TAG tag;
-
-    hexStringToCharArray(pass, latestMessage.pass);
-
-    int dir = 3;
-    if (arrayHandler(&tag, 2, &dir)) {
-        const char* greenLight = "GRANTED";
-        SendDataToArduino(hSerial, greenLight);
-    } else {
-        const char* redLight = "DENIED";
-        SendDataToArduino(hSerial, redLight);
-    }
-}
-
 int InitializeAndStartListenThread() {
     // Initialize the critical section for shared data
     InitializeCriticalSection(&messageCriticalSection);
-    printf("initiating thread...\n");
+
     // Open a handle to the COM3 port
     hSerial = CreateFile(("COM3"), GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-    EscapeCommFunction(hSerial, CLRRTS | SETDTR);
-    Sleep(100);  // Wait for Arduino to reset
-    EscapeCommFunction(hSerial, SETRTS | SETDTR);
     DCB dcbSerialParams = { 0 };
     COMMTIMEOUTS timeouts = { 0 };
 
@@ -235,7 +199,7 @@ void hexStringToCharArray(const char* hexString, char* charArray) {
     charArray[charArrayIndex] = '\0';
 }
 
-int readAndWriteTag(int option, char pass[17], char* receivedId) {
+int readAndWriteTag(int option, char pass[17], char* receivedId, int* check) {
 
     if (hListenThread == NULL) {
         int initResult = InitializeAndStartListenThread();
@@ -245,39 +209,32 @@ int readAndWriteTag(int option, char pass[17], char* receivedId) {
     }
 
     MESSAGE latestMessage;
+    TAG tag;
 
     if(option == 1){
 
-        while(1){
+        const char* newTagMessage = "ADDTAG";
 
+        SendDataToArduino(hSerial, newTagMessage);
 
-            if(currentState == SEND_PASS){
-                Sleep(3000);                //char tempPass[18];
-              
-                //snprintf(tempPass, sizeof(tempPass), "%s#", pass);
-                SendDataToArduino(hSerial, pass);
-                //printf("PASS SENT: %s\n",pass);
+        GetLatestTag(&latestMessage);
 
-                currentState = IDLE_STATE;
+        strncpy(receivedId, latestMessage.id, sizeof(latestMessage.id));
+        receivedId[sizeof(latestMessage.id)] = '\0';
 
-            }else if(currentState == SET_ID){
+        unsigned char passBytes[16];
+        for (int i = 0; i < 16; ++i) {
+        passBytes[i] = (unsigned char)pass[i];
+        }
 
-                GetLatestTag(&latestMessage);
+        SendDataToArduino(hSerial, passBytes);
 
-                strncpy(receivedId, latestMessage.id, sizeof(latestMessage.id));
-                receivedId[sizeof(receivedId) - 1] = '\0';
-                printf("ID SET! %s\n", latestMessage.id);
-                break;
+        GetLatestTag(&latestMessage);
 
-            }else if(currentState == IDLE_STATE){
-
-                
-
-            }else if(currentState == START_UP){
-
-                break;
-
-            }
+        if (strcmp(latestMessage.success, "SUCCESS") == 0) {
+            *check = 1;
+        }else{
+            *check = 0;
         }
     }
 
@@ -293,11 +250,33 @@ int readAndWriteTag(int option, char pass[17], char* receivedId) {
 
          CleanupResources();
 
+
     }
 
-    else if(option == 4){
-        // start up purpose without mixing with state
-        return;
+
+    while (1) {
+        // Your existing logic
+
+        // Check for new data from the second thread
+       
+        GetLatestTag(&latestMessage);
+
+        strcpy(tag.pass, latestMessage.pass);
+
+        if(arrayHandler(&tag, 2, 3)){
+
+                const char* greenLight = "YES";
+                
+                SendDataToArduino(hSerial, greenLight);
+
+            }else{
+
+                const char* redLight = "NOT";
+
+                SendDataToArduino(hSerial, redLight);
+            }
+
+        Sleep(10); 
     }
 
     return 0;

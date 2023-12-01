@@ -16,8 +16,7 @@ int arrayHandler(TAG *tag, int option, int *direction){
             }
             
             tags[tagCount] = *tag;
-            printf("ett: %s\n", tags[tagCount].changedTs);
-            if(*direction == 1){
+            if(direction == 1){
 
                 fileALI(tag);
 
@@ -35,10 +34,9 @@ int arrayHandler(TAG *tag, int option, int *direction){
             exit(EXIT_FAILURE); 
             }
             tags[tagCount] = *tag;
-            printf("ett: %s\n", tags[tagCount].changedTs);
             tagCount++; 
             
-            if(*direction == 1){
+            if(direction == 1){
 
                 fileALI(tag);
             }
@@ -132,7 +130,7 @@ int arrayHandler(TAG *tag, int option, int *direction){
         char listPassDummie[17];
         char listIdDDummie[12];
         listIdDDummie[0] = '\0';
-        readAndWriteTag(3,listPassDummie, listIdDDummie, sizeof(listIdDDummie));
+        readAndWriteTag(3,listPassDummie, listIdDDummie);
         fileWriter(tags, tagCount);
         free(tags);
 
@@ -184,10 +182,10 @@ int fileReader() { // change this to be compatible with byte array[4]
 
             TAG tag;
             
-            if (sscanf(line, "%255[^,], %1s %11s %16s %d %19[^,], %19[^,],", tag.name, tag.idS, &tag.idD, tag.pass, &tag.access, tag.createdTs, tag.changedTs) == 7) {
+            if (sscanf(line, "%255[^,], %1s %8s %16s %d %19[^,], %19[^,],", tag.name, tag.idS, &tag.idD, tag.pass, &tag.access, tag.createdTs, tag.changedTs) == 7) {
                 // Process the tag
                 //newTag(&tag, &direction);
-                arrayHandler(&tag, 0, direction);
+                arrayHandler(&tag, 0, &direction);
             } else {
                 fprintf(stderr, "Error parsing line: %s\n", line);
                 

@@ -11,7 +11,7 @@
 typedef struct TAG{
     char name[256];  // ex alex 
     char idS[2];     // ex C = customer V = Visitor E = Employee
-    char idD[12];        //  // ex 1,2,3,4 -> etc | change to byte idD[];
+    char idD[9];        //  // ex 1,2,3,4 -> etc | change to byte idD[];
     char pass[17];   // Random 16 char pass     
     int access;      // 1 = true 0 = false
     char createdTs[20]; // YYYY-MM-DD HH:MM:SS
@@ -19,7 +19,7 @@ typedef struct TAG{
 } TAG;
 
 
-int arrayHandler(TAG *tag, int option, int *direction);
+int arrayHandler(TAG *tag, int option, int *dir);
 void newTag(TAG *tag, int *direction);
 int asignIdD();
 int checkPass(char tPass[17]);

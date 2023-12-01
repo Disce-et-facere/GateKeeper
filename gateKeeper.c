@@ -84,9 +84,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     static int selectedItemIndex = -1;
 
     switch (msg) {
-        
+
         case WM_CTLCOLORSTATIC: 
-        {
+        {   
+            //char listPassDummie2[17];
+            //char listIdDDummie2[12];
+            //listIdDDummie2[0] = '\0';
+            //readAndWriteTag(4,listPassDummie2, &listIdDDummie2);
+
             HDC hdcStatic = (HDC)wParam;
             SetTextColor(hdcStatic, RGB(255, 255, 255));
             SetBkColor(hdcStatic, RGB(100, 100, 100));
@@ -265,8 +270,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                         char listPassDummie[17];
                         char listIdDDummie[12];
                         listIdDDummie[0] = '\0';
-                        readAndWriteTag(2,listPassDummie, &listIdDDummie, sizeof(listIdDDummie));
-                        //addPopup(6);
+                        readAndWriteTag(2,listPassDummie, &listIdDDummie);
                         //fileReader();
                         //onExit();
                         break;
@@ -286,10 +290,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                             MessageBox(hwnd, "Jesus that's a long name!\n Its need to be shorter, max 254 characters. ", "Text is to Long!", MB_ICONEXCLAMATION | MB_OK);
                             break; 
                         }else{
-                            addPopup(6);
-                            userALI();
+
                             ShowWindow(atPopup, SW_HIDE);
+                            if(stPopup == NULL){
+                                addPopup(6);
+                            }else{
+                                ShowWindow(stPopup, SW_SHOW);
+                            }
+                            userALI();
                             SetWindowText(atName, "");
+                            SetWindowText(stTagScannedLabel, "");
+                            SetWindowText(stTagReggedLabel, "");
+                            
                             
                             break;  
                         }
@@ -743,7 +755,7 @@ int createMainContent(){
     return 0;
 }
 
-// Creates Popup Windows depending on i value 1 - 5
+// Creates Popup Windows depending on i value 1 - 6
 void addPopup(int i){
 
 // change from BOOL to int popupRegd = 0 -> if(popupRegd == 0) -> popupRegd++;  
@@ -1150,23 +1162,22 @@ static BOOL popupRegd = FALSE; // maybe not needed as global? ---> lets try not 
 
     }// <--- Remove Tag Popup
 
-    //Scan Tag Popup
     else if(i == 6){
 
         stPopup = CreateWindowEx(
-        0,
-        "popupClass",
-        "",
-        WS_POPUP | WS_VISIBLE,
-        getHwndPos(1) + 270,
-        getHwndPos(2) + 220,
-        260, 
-        80,
-        hwnd, NULL, GetModuleHandle(NULL), NULL);
+            0,
+            "popupClass",
+            "",
+            WS_POPUP | WS_VISIBLE,
+            getHwndPos(1) + 270,
+            getHwndPos(2) + 220,
+            260, 
+            80,
+            hwnd, NULL, GetModuleHandle(NULL), NULL);
 
         stMessageLabel = CreateWindow(
             "STATIC", 
-            "Scan the tag/card...", 
+            "SCAN THE TAG...", 
             WS_VISIBLE | WS_CHILD,
             55, 
             10, 
@@ -1193,11 +1204,12 @@ static BOOL popupRegd = FALSE; // maybe not needed as global? ---> lets try not 
             150, 
             20, 
             stPopup, NULL, NULL, NULL);
-    }
 
+    }
 }
 
 // extra functions --->
+
 
 // Gets Parent Window position (Main Window/hwnd)
 int getHwndPos(int i){
@@ -1219,6 +1231,7 @@ int getHwndPos(int i){
 
 void userALI(){ // user add list item <---
     
+
     // fetch name from add popup
     char listName[256];
     // add check if atName windowtext <= 255
@@ -1251,24 +1264,18 @@ void userALI(){ // user add list item <---
 
     free(tempPass);
 
-    char listIdD[12];
+    char listIdD[9];
     listIdD[0] = '\0';
-    int check;
+    int check = 1;
+    printf("ListPASS: %s\n",listPass);
+    readAndWriteTag(1,listPass, listIdD); // gets actual tag id
 
-    check = readAndWriteTag(1,listPass, listIdD, sizeof(listIdD)); // gets actual tag id
-
-    printf("listidD in gK: %s", listIdD);
+    printf("listidD in gK: %s\n", listIdD);
 
     if(listIdD[0] != '\0'){
-        SetWindowText(stTagScannedLabel, "Tag Identified!");
-    }else if(check == 1){
-        SetWindowText(stTagReggedLabel, "Tag Registrated!");
+        SetWindowText(stTagScannedLabel, "TAG INDENTIFIED!");
         Sleep(1000);
         ShowWindow(stPopup, SW_HIDE);
-        SetWindowText(stTagScannedLabel, "");
-        SetWindowText(stTagReggedLabel, "");
-    }else{
-        SetWindowText(stTagScannedLabel, "ERROR READING TAG");
     }
     
     
