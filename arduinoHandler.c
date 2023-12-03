@@ -7,7 +7,7 @@ CRITICAL_SECTION messageCriticalSection;
 HANDLE hListenThread = NULL;
 HANDLE hSerial;
 HANDLE hExitEvent;
-enum State currentState = START_UP;
+enum State currentState = RUNNING_STATE;
 
 
 // Function for handling Arduino events and update data
@@ -26,7 +26,7 @@ void HandleArduinoEvent(HANDLE hSerial) {
     size_t tagIDSuffixLength = strlen(tagIDSuffix);
     
 
-    if (ReadFile(hSerial, buffer, sizeof(buffer) - 1, &bytesRead, NULL)) {
+    if (ReadFile(hSerial, buffer, sizeof(buffer) - 1, &bytesRead, NULL) && currentState == RUNNING_STATE) {
 
         buffer[bytesRead] = '\0';
 
@@ -46,26 +46,24 @@ void HandleArduinoEvent(HANDLE hSerial) {
             }
         }
 
-        else if (strncmp(buffer, tagIDPrefix, tagIDPrefixLength) == 0 &&
-            strncmp(buffer + bytesRead - tagIDSuffixLength, tagIDSuffix, tagIDSuffixLength) == 0) {
+    }else if (ReadFile(hSerial, buffer, sizeof(buffer) - 1, &bytesRead, NULL) && currentState == READ_ID) {
+        if (strncmp(buffer, tagIDPrefix, tagIDPrefixLength) == 0 &&
+        strncmp(buffer + bytesRead - tagIDSuffixLength, tagIDSuffix, tagIDSuffixLength) == 0) {
 
-            char formattedID[9];
-            strncpy(formattedID, buffer + tagIDPrefixLength, 8);
-            formattedID[8] = '\0';
+        char formattedID[9];
+        strncpy(formattedID, buffer + tagIDPrefixLength, 8);
+        formattedID[8] = '\0';
 
-            
-            EnterCriticalSection(&messageCriticalSection);
-            strncpy((char*)sharedMessage.id, formattedID, sizeof(sharedMessage.id));
-            sharedMessage.id[sizeof(sharedMessage.id) - 1] = '\0';
-            LeaveCriticalSection(&messageCriticalSection);
+        
+        EnterCriticalSection(&messageCriticalSection);
+        strncpy((char*)sharedMessage.id, formattedID, sizeof(sharedMessage.id));
+        sharedMessage.id[sizeof(sharedMessage.id) - 1] = '\0';
+        LeaveCriticalSection(&messageCriticalSection);
 
-            currentState = SET_ID;
-            PurgeComm(hSerial, PURGE_RXCLEAR | PURGE_TXCLEAR);
+        currentState = SET_ID;
+        PurgeComm(hSerial, PURGE_RXCLEAR | PURGE_TXCLEAR);
         }
         
-    } else {
-        
-        printf("Error reading from serial port. Error code: %d\n", GetLastError());
     }
 }
 
@@ -87,7 +85,7 @@ void SendDataToArduino(HANDLE hSerial, const char* data) {
         fprintf(stderr, "Error writing to serial port\n");
     }else{
         printf("SENT MESSAGE: %s\n", data);
-
+        
         if (!FlushFileBuffers(hSerial)) {
             fprintf(stderr, "Error flushing file buffers. Error code: %lu\n", GetLastError());
         }
@@ -242,21 +240,15 @@ int ardHandler(char pass[17], char* receivedId) {
                 strcpy(prepPass, ":");
                 strcat(prepPass, tempPass);
                 strcat(prepPass, ";");
-              
+                
                 SendDataToArduino(hSerial, prepPass);
-
+                currentState = READ_ID;
             }else if(currentState == SET_ID){
 
                 GetLatestTag(&latestMessage);
                 strncpy(receivedId, latestMessage.id, sizeof(latestMessage.id));
                 receivedId[9] = '\0';
                 break;
-                
-            }else if(currentState == START_UP){
-
-                 break;
-
-            }else if(currentState == ERROR_STATE){
                 
             }
         

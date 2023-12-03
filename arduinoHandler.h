@@ -10,7 +10,7 @@
 
 enum State {
     IDLE_STATE,
-    START_UP,
+    RUNNING_STATE,
     READ_ID,
     SET_ID,
     SEND_PASS,

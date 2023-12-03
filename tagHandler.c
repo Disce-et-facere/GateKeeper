@@ -63,8 +63,6 @@ int arrayHandler(TAG *tag, int option, int *direction){
             if (strcmp(tags[i].pass, tag->pass) == 0) {
                 
                 return tags[i].access;
-            }else{
-                return 0;
             }
         }
 
