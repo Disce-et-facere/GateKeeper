@@ -39,5 +39,6 @@ int checkInput(const char *text); // check if userinput contains non letter char
 int onPopupAtaTime(int popup);
 void changedTag(int index, int subIndex, char change[255]);
 int removeTag(int index);
+void noScanner();
 
 #endif

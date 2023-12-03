@@ -11,6 +11,7 @@
 enum State {
     IDLE_STATE,
     START_UP,
+    READ_ID,
     SET_ID,
     SEND_PASS,
     ERROR_STATE
@@ -34,7 +35,8 @@ void CleanupResources();
 void ProcessReceivedPass(const char* pass);
 int InitializeAndStartListenThread();
 void hexStringToCharArray(const char* hexString, char* charArray);
-int readAndWriteTag(int option, char pass[17], char *receivedId);
+int ardHandler(char pass[17], char *receivedId);
+void openDoor();
 
 
 #endif

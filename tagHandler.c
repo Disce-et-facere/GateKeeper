@@ -63,13 +63,10 @@ int arrayHandler(TAG *tag, int option, int *direction){
             if (strcmp(tags[i].pass, tag->pass) == 0) {
                 
                 return tags[i].access;
+            }else{
+                return 0;
             }
         }
-
-    
-        return -1; 
-    
-
 
     }else if(option == 3){ // checks if new password exists
 
@@ -130,7 +127,7 @@ int arrayHandler(TAG *tag, int option, int *direction){
         char listPassDummie[17];
         char listIdDDummie[12];
         listIdDDummie[0] = '\0';
-        readAndWriteTag(3,listPassDummie, listIdDDummie);
+        CleanupResources();
         fileWriter(tags, tagCount);
         free(tags);
 
@@ -166,10 +163,10 @@ void onExit(){
 }
 
 // Reads tags from file
-int fileReader() { // change this to be compatible with byte array[4]
+int fileReader() { 
 
     FILE *tagFileR = fopen("tags.txt", "r");
-    int direction = 1;
+    //int direction = 1;
 
     if (tagFileR != NULL) {
         char line[256]; 
@@ -182,10 +179,10 @@ int fileReader() { // change this to be compatible with byte array[4]
 
             TAG tag;
             
-            if (sscanf(line, "%255[^,], %1s %8s %16s %d %19[^,], %19[^,],", tag.name, tag.idS, &tag.idD, tag.pass, &tag.access, tag.createdTs, tag.changedTs) == 7) {
+            if (sscanf(line, "%255[^,], %1s %8s %16s %d %19[^,], %19[^,],", tag.name, tag.idS, tag.idD, tag.pass, &tag.access, tag.createdTs, tag.changedTs) == 7) {
                 // Process the tag
                 //newTag(&tag, &direction);
-                arrayHandler(&tag, 0, &direction);
+                arrayHandler(&tag, 0, 1);
             } else {
                 fprintf(stderr, "Error parsing line: %s\n", line);
                 
@@ -202,7 +199,7 @@ int fileReader() { // change this to be compatible with byte array[4]
 }
 
 // saves tag to file
-int fileWriter(TAG *tags, int tagCount) { // add new tags to file // change this to be compatible with byte array[4]
+int fileWriter(TAG *tags, int tagCount) { // add new tags to file 
 
     if(tagCount > 0){
 

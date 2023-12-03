@@ -83,15 +83,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
     static int selectedItemIndex = -1;
 
+    static initTP = 1;
+
     switch (msg) {
 
+        case WM_CREATE:
+        {   
+            if(initTP == 1){
+            InitializeAndStartListenThread();
+            initTP = 0;
+            }
+        }
         case WM_CTLCOLORSTATIC: 
         {   
-            //char listPassDummie2[17];
-            //char listIdDDummie2[12];
-            //listIdDDummie2[0] = '\0';
-            //readAndWriteTag(4,listPassDummie2, &listIdDDummie2);
-
             HDC hdcStatic = (HDC)wParam;
             SetTextColor(hdcStatic, RGB(255, 255, 255));
             SetBkColor(hdcStatic, RGB(100, 100, 100));
@@ -267,12 +271,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                     }
                     case 1012:
                     {
-                        char listPassDummie[17];
-                        char listIdDDummie[12];
-                        listIdDDummie[0] = '\0';
-                        readAndWriteTag(2,listPassDummie, &listIdDDummie);
-                        //fileReader();
-                        //onExit();
+                        openDoor();
                         break;
                     }
                     case AT_BUTTON_ADD:
@@ -290,19 +289,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                             MessageBox(hwnd, "Jesus that's a long name!\n Its need to be shorter, max 254 characters. ", "Text is to Long!", MB_ICONEXCLAMATION | MB_OK);
                             break; 
                         }else{
-
                             ShowWindow(atPopup, SW_HIDE);
-                            if(stPopup == NULL){
-                                addPopup(6);
-                            }else{
-                                ShowWindow(stPopup, SW_SHOW);
-                            }
                             userALI();
-                            SetWindowText(atName, "");
-                            SetWindowText(stTagScannedLabel, "");
-                            SetWindowText(stTagReggedLabel, "");
-                            
-                            
+                            SetWindowText(atName, "");  
                             break;  
                         }
                         
@@ -649,6 +638,7 @@ int createMainContent(){
     LVITEM lvItem = {0};
     lvItem.mask = LVIF_TEXT;
     lvItem.iItem = currentListItems;
+     fileReader();
     // removes dummies from here -->
    /* 
     lvItem.iSubItem = 0;
@@ -751,6 +741,8 @@ int createMainContent(){
     EnableWindow(cidBtn, FALSE);
     EnableWindow(cacBtn, FALSE);
     EnableWindow(rtBtn, FALSE);
+
+    
 
     return 0;
 }
@@ -1264,21 +1256,13 @@ void userALI(){ // user add list item <---
 
     free(tempPass);
 
+    char sendAwayPass[17];
+    strcpy(sendAwayPass, listPass);
+
     char listIdD[9];
-    listIdD[0] = '\0';
     int check = 1;
-    printf("ListPASS: %s\n",listPass);
-    readAndWriteTag(1,listPass, listIdD); // gets actual tag id
 
-    printf("listidD in gK: %s\n", listIdD);
-
-    if(listIdD[0] != '\0'){
-        SetWindowText(stTagScannedLabel, "TAG INDENTIFIED!");
-        Sleep(1000);
-        ShowWindow(stPopup, SW_HIDE);
-    }
-    
-    
+    ardHandler(sendAwayPass, listIdD); // gets actual tag id
 
     //checks which true/false radio button is selected
     char sListAccess[8];
@@ -1380,7 +1364,7 @@ void userALI(){ // user add list item <---
     tag.access = listAccess;
 
     strncpy(tag.createdTs, listTimestamp, sizeof(tag.createdTs) - 1);
-    tag.pass[sizeof(tag.createdTs) - 1] = '\0';
+    tag.createdTs[sizeof(tag.createdTs) - 1] = '\0';
 
     strcpy(tag.changedTs, "yyyy-mm-dd 00:00:00");
 
@@ -1675,5 +1659,9 @@ int onPopupAtaTime(int popup){
         ShowWindow(caPopup, SW_HIDE);
     }
 return 0;
+}
+
+void noScanner(){
+    MessageBox(hwnd, "Scanner is not connected! \n Program will shutDown... Press OK", "Scanner Not Connected!", MB_ICONEXCLAMATION | MB_OK);
 }
 // <--- extra functions
