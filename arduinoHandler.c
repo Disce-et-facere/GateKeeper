@@ -31,7 +31,6 @@ void HandleArduinoEvent(HANDLE hSerial) {
         buffer[bytesRead] = '\0';
 
         if (strstr(buffer, tagPassPrefix) != NULL) {
-            printf("Password prefix found\n");
 
             char* passwordStart = strstr(buffer, tagPassPrefix) + tagPassPrefixLength;
             char* passwordEnd = strstr(passwordStart, tagPassSuffix);
