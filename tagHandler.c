@@ -206,22 +206,27 @@ int fileReader() {
 // saves tag to file
 int fileWriter(TAG *tags, int tagCount) { // add new tags to file 
 
-    if(tagCount > 0){
-
-        FILE *tagFileW = fopen("tags.txt", "w");
-
-            if (tagFileW == NULL) {
+    FILE *tagFileW = fopen("tags.txt", "w");
+    
+    if (tagFileW == NULL) {
             perror("Error opening file for writing");
             return -1;
             }
-            
+    
+    if(tagCount > 0){
+
             for(int i = 0; i < tagCount; i++){
 
                 fprintf(tagFileW, "%s, %s %s %s %d %s, %s,\n", tags[i].name, tags[i].idS, tags[i].idD, tags[i].pass, tags[i].access, tags[i].createdTs, tags[i].changedTs);
 
             }
         
-            fclose(tagFileW);
+    } else {
+        // If tagCounter is 0, write an empty line to the file
+        fprintf(tagFileW, "\n");
     }
+    
+    fclose(tagFileW);
+
     return 0;
 }
