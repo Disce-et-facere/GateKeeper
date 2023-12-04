@@ -1,5 +1,5 @@
-GateKeeper 
+# Gate Keeper
 
-Simulated Tag read/writer program
+Gate Keeper is a simple tag reader/writer system built with Arduino and the RC522 RFID module.
 
-Read/Write tags with arduino
+It comes with a user-friendly graphical interface.
