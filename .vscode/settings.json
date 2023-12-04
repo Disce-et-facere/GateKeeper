@@ -47,5 +47,6 @@
         "stdbool.h": "c",
         "timestamp.h": "c",
         "arduinoHandler.h": "c",
+        "sendPassToArduino.h": "c"
     }
 }

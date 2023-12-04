@@ -61,10 +61,14 @@ int arrayHandler(TAG *tag, int option, int *direction){
         
         for (int i = 0; i < tagCount; i++) {
             if (strcmp(tags[i].pass, tag->pass) == 0) {
-                
+                printf("Pass Checks! %s\n",tag->pass);
+                printf("Pass i Checks! %s\n",tags[i].pass);
+                printf("Pass i access Checks! %d\n",tags[i].access);
                 return tags[i].access;
+                break;
             }
         }
+        return 2;
 
     }else if(option == 3){ // checks if new password exists
 
@@ -87,11 +91,9 @@ int arrayHandler(TAG *tag, int option, int *direction){
             return 0;
 
         }
-    }else if(option == 4){ // remove tag from array
+    }else if(option == 4){ // remove tag from array | add if only one exists free malloc space!
 
         int indexToRemove = -1;
-        // change this to be compatible with char array[4]
-        // Find tag to remove by its idD | change to by its pass -> strcmp 
         
         for (int i = 0; i < tagCount; ++i) {
             if (strcmp(tags[i].pass, tag->pass) == 0) {
@@ -109,13 +111,18 @@ int arrayHandler(TAG *tag, int option, int *direction){
 
             --tagCount;
             
-            // Resizes memory
-            TAG *temp = realloc(tags, sizeof(TAG) * tagCount); // temp array in case of failure
-            if (temp != NULL) {  
-                tags = temp;
+            // Resizes memory or free if it the last one
+            if (tagCount == 0) {
+            free(tags);
+            tags = NULL;
             } else {
-                fprintf(stderr, "Memory reallocation failed. REMOVE\n");
-                exit(EXIT_FAILURE);
+                TAG *temp = realloc(tags, sizeof(TAG) * tagCount); // temp array in case of failure
+                if (temp != NULL) {  
+                    tags = temp;
+                } else {
+                    fprintf(stderr, "Memory reallocation failed. REMOVE\n");
+                    exit(EXIT_FAILURE);
+                }
             }
         }
 

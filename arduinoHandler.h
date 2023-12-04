@@ -11,17 +11,13 @@
 enum State {
     IDLE_STATE,
     RUNNING_STATE,
-    READ_ID,
-    SET_ID,
-    SEND_PASS,
-    ERROR_STATE
 };
 
 // Define your TAG struct
 typedef struct {
     char id[9];
     char pass[17];
-    char success[7];
+    bool openDoor;
     // Add other fields if needed
 } MESSAGE;
 
@@ -34,8 +30,6 @@ void StopListenThread(HANDLE hThread);
 void CleanupResources();
 void ProcessReceivedPass(const char* pass);
 int InitializeAndStartListenThread();
-void hexStringToCharArray(const char* hexString, char* charArray);
-int ardHandler(char pass[17], char *receivedId);
 void openDoor();
 
 

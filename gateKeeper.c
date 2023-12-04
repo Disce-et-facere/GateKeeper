@@ -1262,7 +1262,7 @@ void userALI(){ // user add list item <---
     char listIdD[9];
     int check = 1;
 
-    ardHandler(sendAwayPass, listIdD); // gets actual tag id
+    receivePointerSendPass(sendAwayPass, listIdD); // gets actual tag id
 
     //checks which true/false radio button is selected
     char sListAccess[8];
@@ -1548,18 +1548,7 @@ void changedTag(int index, int subIndex, char value[255]){
     tag.changedTs[sizeof(tag.changedTs) - 1] = '\0';
 
     ListView_SetItemText(hListView, index, 5, newTimestamp);
-
-    printf("Ett: \n");
-    printf("%s\n",tag.name);
-    printf("%s\n",tag.idS);
-    printf("%s\n",tag.idD);
-    printf("pass: \n");
-    printf("%s\n",tag.pass);
-    printf("pass: \n");
-    printf("%d\n",tag.access);
-    printf("%s\n",tag.createdTs);
-    printf("%s\n",tag.changedTs);
-    //changeTag(&tag);
+    
     int option = 1;
     int direction = 3;
     arrayHandler(&tag, option, &direction);

@@ -7,26 +7,19 @@ CRITICAL_SECTION messageCriticalSection;
 HANDLE hListenThread = NULL;
 HANDLE hSerial;
 HANDLE hExitEvent;
-enum State currentState = RUNNING_STATE;
-
+bool running = true;
 
 // Function for handling Arduino events and update data
 void HandleArduinoEvent(HANDLE hSerial) {
     DWORD bytesRead;
     char buffer[MAX_BUFFER_SIZE];
 
-
     const char* tagPassPrefix = "TAGPASS:";
     const char* tagPassSuffix = ":TAGPASS";
-    const char* tagIDPrefix = "ID:";
-    const char* tagIDSuffix = ":ID";
     size_t tagPassPrefixLength = strlen(tagPassPrefix);
     size_t tagPassSuffixLength = strlen(tagPassSuffix);
-    size_t tagIDPrefixLength = strlen(tagIDPrefix);
-    size_t tagIDSuffixLength = strlen(tagIDSuffix);
-    
 
-    if (ReadFile(hSerial, buffer, sizeof(buffer) - 1, &bytesRead, NULL) && currentState == RUNNING_STATE) {
+    if (ReadFile(hSerial, buffer, sizeof(buffer) - 1, &bytesRead, NULL)) {
 
         buffer[bytesRead] = '\0';
 
@@ -46,24 +39,6 @@ void HandleArduinoEvent(HANDLE hSerial) {
             }
         }
 
-    }else if (ReadFile(hSerial, buffer, sizeof(buffer) - 1, &bytesRead, NULL) && currentState == READ_ID) {
-        if (strncmp(buffer, tagIDPrefix, tagIDPrefixLength) == 0 &&
-        strncmp(buffer + bytesRead - tagIDSuffixLength, tagIDSuffix, tagIDSuffixLength) == 0) {
-
-        char formattedID[9];
-        strncpy(formattedID, buffer + tagIDPrefixLength, 8);
-        formattedID[8] = '\0';
-
-        
-        EnterCriticalSection(&messageCriticalSection);
-        strncpy((char*)sharedMessage.id, formattedID, sizeof(sharedMessage.id));
-        sharedMessage.id[sizeof(sharedMessage.id) - 1] = '\0';
-        LeaveCriticalSection(&messageCriticalSection);
-
-        currentState = SET_ID;
-        PurgeComm(hSerial, PURGE_RXCLEAR | PURGE_TXCLEAR);
-        }
-        
     }
 }
 
@@ -96,16 +71,30 @@ void SendDataToArduino(HANDLE hSerial, const char* data) {
 // Function to listen for Arduino events in a separate thread
 DWORD WINAPI ListenThreadFunction(LPVOID lpParam) {
     HANDLE hSerial = (HANDLE)lpParam;
-    //DWORD dwEventMask;
+    MESSAGE latestMessage;
 
     while (1) {
-
-        //printf("LooP init..\n");
         
-        if (WaitForSingleObject(hExitEvent, 0) == WAIT_OBJECT_0) {
-            break; 
-        }
-            HandleArduinoEvent(hSerial);
+        
+        
+            if (WaitForSingleObject(hExitEvent, 0) == WAIT_OBJECT_0) {
+                break; 
+            }
+
+            GetLatestTag(&latestMessage);
+    
+            if(sharedMessage.openDoor){
+                
+                const char* doorMessage = "[";
+
+                SendDataToArduino(hSerial, doorMessage);
+
+                sharedMessage.openDoor = false;
+
+            }
+
+                HandleArduinoEvent(hSerial);
+        
     }
 
     return 0;
@@ -146,13 +135,21 @@ void ProcessReceivedPass(const char* pass) {
 
     strcpy(tag.pass, pass);
 
+    printf("PRP: %s\n", tag.pass);
+
     int dir = 3;
-    if (arrayHandler(&tag, 2, &dir)) {
+    int answer;
+
+    answer = arrayHandler(&tag, 2, &dir);
+    printf("answer: %d",answer);
+    if (answer == 1) {
         const char* greenLight = "{";
         SendDataToArduino(hSerial, greenLight);
-    } else {
+    } else if(answer == 0){
         const char* redLight = "}";
         SendDataToArduino(hSerial, redLight);
+    }else if(answer == 2){
+        // just somthing to catch no match.
     }
 }
 
@@ -177,8 +174,6 @@ int InitializeAndStartListenThread() {
     if (hSerial == INVALID_HANDLE_VALUE) {
         fprintf(stderr, "Error opening COM3 port\n");
         CleanupResources(); // Clean up on error
-        noScanner();
-        exit(1);
         return 1;
     }
 
@@ -217,50 +212,10 @@ int InitializeAndStartListenThread() {
     return 0;
 }
 
-int ardHandler(char pass[17], char* receivedId) {
-
-    if (hListenThread == NULL) {
-        int initResult = InitializeAndStartListenThread();
-        if (initResult != 0) {
-            return initResult; // Initialization failed
-        }
-    }
-
-    MESSAGE latestMessage;
-
-    currentState = SEND_PASS;
-
-        while(1){
-
-            if(currentState == SEND_PASS){
-
-                char tempPass[17];
-                strcpy(tempPass, pass);
-                char prepPass[20];
-                strcpy(prepPass, ":");
-                strcat(prepPass, tempPass);
-                strcat(prepPass, ";");
-                
-                SendDataToArduino(hSerial, prepPass);
-                currentState = READ_ID;
-            }else if(currentState == SET_ID){
-
-                GetLatestTag(&latestMessage);
-                strncpy(receivedId, latestMessage.id, sizeof(latestMessage.id));
-                receivedId[9] = '\0';
-                break;
-                
-            }
-        
-        }
-
-    return 0;
-}
-
 void openDoor(){
 
-    const char* doorMessage = "[";
-
-    SendDataToArduino(hSerial, doorMessage);
+    EnterCriticalSection(&messageCriticalSection);
+    sharedMessage.openDoor = true;
+    LeaveCriticalSection(&messageCriticalSection);
 
 }
