@@ -71,26 +71,24 @@ void loop() {
   MFRC522::MIFARE_Key key;
   for (byte i = 0; i < 6; i++) key.keyByte[i] = 0xFF;
 
-   
-    //Serial.readBytes((char *)pass, 16);
   
  while (Serial.available() > 0 && serialBufferIndex < maxBufferSize) {
     serialBuffer[serialBufferIndex++] = Serial.read();
   }
 
-  // State machine to process the contents of the buffer
+
   for (int i = 0; i < serialBufferIndex; ++i) {
     char currentChar = serialBuffer[i];
 
     switch (currentChar) {
       case prefix:
-        // Start of password, reset passIndex and set prefixDetected
+    
         passIndex = 0;
         prefixDetected = true;
         break;
 
       case suffix:
-        // End of password, set suffixDetected if a valid password has been received
+      
         if (passIndex > 0 && passIndex == 16) {
           suffixDetected = true;
           digitalWrite(YELLOW_LED_PIN, HIGH);
@@ -113,27 +111,27 @@ void loop() {
           digitalWrite(RED_LED_PIN, LOW);
           break;
       default:
-        // Continue reading characters for the password
+ 
         if (passIndex < 16) {
           pass[passIndex++] = currentChar;
         }
     }
   }
 
-  // Set passAvailable only if both prefix and suffix are detected
+
   if (prefixDetected && suffixDetected) {
     passAvailable = true;
-    // Reset the flags for the next password
+  
     prefixDetected = false;
     suffixDetected = false;
   }
 
-  // Reset passIndex only if a complete password has been processed
+ 
   if (passAvailable) {
     passIndex = 0;
   }
 
-  // Reset serialBufferIndex after processing the buffer
+
   serialBufferIndex = 0;
 
 
@@ -141,7 +139,7 @@ void loop() {
     return;
   }
 
-  // Select one of the cards
+ 
   if (!mfrc522.PICC_ReadCardSerial()) {
     return;
   }
@@ -194,11 +192,7 @@ void loop() {
         Serial.flush();
         resetPass();
         passAvailable = false;
-        /*
-        digitalWrite(GREEN_LED_PIN, HIGH);
-        delay(1500);
-        digitalWrite(GREEN_LED_PIN, LOW);
-        */
+ 
         mfrc522.PICC_HaltA(); // Halt PICC
         mfrc522.PCD_StopCrypto1(); // Stop encryption on PCD
 

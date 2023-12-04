@@ -9,7 +9,7 @@ HANDLE hSerial;
 HANDLE hExitEvent;
 bool running = true;
 
-// Function for handling Arduino events and update data
+
 void HandleArduinoEvent(HANDLE hSerial) {
     DWORD bytesRead;
     char buffer[MAX_BUFFER_SIZE];
@@ -44,10 +44,10 @@ void HandleArduinoEvent(HANDLE hSerial) {
 
 
 
-// Function to get the latest shared data from the main thread
+
 void GetLatestTag(MESSAGE* message) {
     EnterCriticalSection(&messageCriticalSection);
-    // Copy the shared data to the provided TAG struct
+  
     memcpy(message, &sharedMessage, sizeof(MESSAGE));
     LeaveCriticalSection(&messageCriticalSection);
 }
@@ -68,7 +68,7 @@ void SendDataToArduino(HANDLE hSerial, const char* data) {
     }
 }
 
-// Function to listen for Arduino events in a separate thread
+
 DWORD WINAPI ListenThreadFunction(LPVOID lpParam) {
     HANDLE hSerial = (HANDLE)lpParam;
     MESSAGE latestMessage;
@@ -100,13 +100,13 @@ DWORD WINAPI ListenThreadFunction(LPVOID lpParam) {
     return 0;
 }
 
-// Function to start the Arduino event listening thread
+
 HANDLE StartListenThread(HANDLE hSerial) {
     hExitEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
     return CreateThread(NULL, 0, ListenThreadFunction, hSerial, 0, NULL);
 }
 
-// Function to stop the Arduino event listening thread
+
 void StopListenThread(HANDLE hThread) {
     SetEvent(hExitEvent);
     WaitForSingleObject(hThread, INFINITE);
@@ -160,24 +160,20 @@ int InitializeAndStartListenThread() {
     printf("initiating thread...\n");
 
     hSerial = CreateFile(("COM3"), GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-    /*
-    EscapeCommFunction(hSerial, CLRRTS | SETDTR);
-    Sleep(1000);
-    EscapeCommFunction(hSerial, SETRTS | SETDTR);
-    */
+ 
     PurgeComm(hSerial, PURGE_RXCLEAR | PURGE_TXCLEAR);
 
     DCB dcbSerialParams = { 0 };
     COMMTIMEOUTS timeouts = { 0 };
 
-    // Check for errors in opening the serial port
+   
     if (hSerial == INVALID_HANDLE_VALUE) {
         fprintf(stderr, "Error opening COM3 port\n");
         CleanupResources(); // Clean up on error
         return 1;
     }
 
-    // Set serial port parameters
+ 
     dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
     if (!GetCommState(hSerial, &dcbSerialParams)) {
         fprintf(stderr, "Error getting serial port state\n");
@@ -196,7 +192,7 @@ int InitializeAndStartListenThread() {
         return 1;
     }
 
-    // Set timeouts
+    
     timeouts.ReadIntervalTimeout = 50;
     timeouts.ReadTotalTimeoutConstant = 50;
     timeouts.ReadTotalTimeoutMultiplier = 10;

@@ -4,18 +4,15 @@ int receivePointerSendPass(char pass[17], char* receivedId) {
 
     CleanupResources();
 
-    // Create the serial port handle
+   
     HANDLE h2Serial = CreateFile(("COM3"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
    if (h2Serial == INVALID_HANDLE_VALUE) {
         fprintf(stderr, "Error opening COM3 port\n");
-        CleanupResources(); // Clean up on error
-        noScanner();
-        exit(1);
         return 1;
     }
 
-    // Set the port settings
+    
     DCB dcbSerialParams = {0};
     COMMTIMEOUTS timeouts = { 0 };
 
