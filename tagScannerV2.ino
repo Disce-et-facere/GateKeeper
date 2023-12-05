@@ -70,25 +70,24 @@ void loop() {
 
   MFRC522::MIFARE_Key key;
   for (byte i = 0; i < 6; i++) key.keyByte[i] = 0xFF;
-
   
  while (Serial.available() > 0 && serialBufferIndex < maxBufferSize) {
     serialBuffer[serialBufferIndex++] = Serial.read();
   }
 
-
+  
   for (int i = 0; i < serialBufferIndex; ++i) {
     char currentChar = serialBuffer[i];
 
     switch (currentChar) {
       case prefix:
-    
+        
         passIndex = 0;
         prefixDetected = true;
         break;
 
       case suffix:
-      
+        
         if (passIndex > 0 && passIndex == 16) {
           suffixDetected = true;
           digitalWrite(YELLOW_LED_PIN, HIGH);
@@ -111,27 +110,27 @@ void loop() {
           digitalWrite(RED_LED_PIN, LOW);
           break;
       default:
- 
+        
         if (passIndex < 16) {
           pass[passIndex++] = currentChar;
         }
     }
   }
 
-
+  // Set passAvailable only if both prefix and suffix are detected
   if (prefixDetected && suffixDetected) {
     passAvailable = true;
-  
+    // Reset the flags for the next password
     prefixDetected = false;
     suffixDetected = false;
   }
 
- 
+  // Reset passIndex only if a complete password has been processed
   if (passAvailable) {
     passIndex = 0;
   }
 
-
+  // Reset serialBufferIndex after processing the buffer
   serialBufferIndex = 0;
 
 
@@ -139,7 +138,7 @@ void loop() {
     return;
   }
 
- 
+  
   if (!mfrc522.PICC_ReadCardSerial()) {
     return;
   }
@@ -161,11 +160,11 @@ void loop() {
           Serial.print((char)buffer[i]);
         }
         Serial.print(":TAGPASS");
-        Serial.flush();
-        Serial.println();
 
         mfrc522.PICC_HaltA(); // Halt PICC
         mfrc522.PCD_StopCrypto1(); // Stop encryption on PCD
+
+        return;
       }
     }
   } else {
@@ -192,11 +191,11 @@ void loop() {
         Serial.flush();
         resetPass();
         passAvailable = false;
- 
+  
         mfrc522.PICC_HaltA(); // Halt PICC
         mfrc522.PCD_StopCrypto1(); // Stop encryption on PCD
 
-        
+        return;
       }
     }
   }
