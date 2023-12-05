@@ -84,7 +84,6 @@ int receivePointerSendPass(char pass[17], char* receivedId) {
             formattedID[8] = '\0';
             printf("FORMATTED ID: %s\n", formattedID);
             strncpy(receivedId, formattedID, sizeof(receivedId));
-            receivedId[sizeof(receivedId) - 1] = '\0';
             PurgeComm(h2Serial, PURGE_RXCLEAR | PURGE_TXCLEAR);
             break;
             }

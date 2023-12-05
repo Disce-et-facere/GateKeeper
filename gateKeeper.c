@@ -332,8 +332,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                     case CID_BUTTON_SAVE:
                     {
                         int comboIndex = (int)SendMessage(cidComboBox, CB_GETCURSEL, 0,0);
-                        char idsBuffer[10];
+                        char idsBuffer[11];
                         SendMessage(cidComboBox, CB_GETLBTEXT, (WPARAM)comboIndex, (LPARAM)idsBuffer);
+                        idsBuffer[sizeof(idsBuffer) - 1] = '\0';
                         char comboIdS[255];
                         comboIdS[0] = (char)toupper(idsBuffer[0]);
                         comboIdS[1] = '\0';
@@ -1263,7 +1264,8 @@ void userALI(){ // user add list item <---
     int check = 1;
 
     receivePointerSendPass(sendAwayPass, listIdD); // gets actual tag id
-
+    listIdD[8] = '\0';
+    printf("GK id: %s\n",listIdD);
     //checks which true/false radio button is selected
     char sListAccess[8];
     int listAccess;
@@ -1502,7 +1504,8 @@ void changedTag(int index, int subIndex, char value[255]){
         }
 
         char newValue[255];
-        sprintf(newValue, "%s%s", tag.idS, tempNumber);
+        sprintf(newValue, "%s | %s", value, tempNumber);
+        printf("NValue: %s\n", newValue);
     
     ListView_SetItemText(hListView, index, subIndex, newValue);;
 
@@ -1601,6 +1604,7 @@ int removeTag(int index){
     arrayHandler(&tag, option, &direction);
 
     ListView_DeleteItem(hListView, index);
+    currentListItems--;
 
     return 0;
 }
