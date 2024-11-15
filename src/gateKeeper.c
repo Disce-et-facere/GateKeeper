@@ -114,11 +114,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                     {
                         if(atPopup == NULL){
                             addPopup(1);
-                            onPopupAtaTime(1);
+                            onePopupAtaTime(1);
                             break;    
                         } else {
                             ShowWindow(atPopup, SW_SHOW);
-                            onPopupAtaTime(1);
+                            onePopupAtaTime(1);
                             break;
                         }
         
@@ -134,12 +134,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
                         if(cnPopup == NULL){
                             addPopup(2);
-                            onPopupAtaTime(2);
+                            onePopupAtaTime(2);
                             SetWindowText(cnCurrentNameLabel, selectedName1);
                             break;   
                         }else{
                             ShowWindow(cnPopup, SW_SHOW);
-                            onPopupAtaTime(2);
+                            onePopupAtaTime(2);
                             SetWindowText(cnCurrentNameLabel, selectedName1);
                             break;
                         }
@@ -156,12 +156,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
                         if(cidPopup == NULL){
                             addPopup(3);
-                            onPopupAtaTime(3);
+                            onePopupAtaTime(3);
                             SetWindowText(cidCurrentIdLabel, selectedId1);
                             break;   
                         }else{
                             ShowWindow(cidPopup, SW_SHOW);
-                            onPopupAtaTime(3);
+                            onePopupAtaTime(3);
                             SetWindowText(cidCurrentIdLabel, selectedId1);
                             break;
                         }
@@ -199,7 +199,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
                             }
 
-                            onPopupAtaTime(4);
+                            onePopupAtaTime(4);
 
                             SetWindowText(caCurrentAccessLabel, selectedAccess1);
 
@@ -222,7 +222,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
                             }
 
-                            onPopupAtaTime(4);
+                            onePopupAtaTime(4);
 
                             SetWindowText(caCurrentAccessLabel, selectedAccess1);
 
@@ -254,14 +254,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
                         if(rtPopup == NULL){
                             addPopup(5);
-                            onPopupAtaTime(5);
+                            onePopupAtaTime(5);
                             SetWindowText(rtSelectedNameLabel, selectedName11);
                             SetWindowText(rtSelectedIdLabel, selectedId11);
                             SetWindowText(rtSelectedAccessLabel, selectedAccess11);
                             break;   
                         }else{
                             ShowWindow(rtPopup, SW_SHOW);
-                            onPopupAtaTime(5);
+                            onePopupAtaTime(5);
                             SetWindowText(rtSelectedNameLabel, selectedName11);
                             SetWindowText(rtSelectedIdLabel, selectedId11);
                             SetWindowText(rtSelectedAccessLabel, selectedAccess11);
@@ -1619,7 +1619,7 @@ int checkInput(const char *text){
     return 1; // letter and whitespace
 }
 
-int onPopupAtaTime(int popup){
+int onePopupAtaTime(int popup){
 
     if(popup == 1){
         ShowWindow(cnPopup, SW_HIDE);
