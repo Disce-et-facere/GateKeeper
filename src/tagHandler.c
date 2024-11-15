@@ -170,7 +170,7 @@ void onExit(){
 // Reads tags from file
 int fileReader() { 
 
-    FILE *tagFileR = fopen("tags.txt", "r");
+    FILE *tagFileR = fopen("../tags/tags.txt", "r");
     //int direction = 1;
 
     if (tagFileR != NULL) {
@@ -206,7 +206,7 @@ int fileReader() {
 // saves tag to file
 int fileWriter(TAG *tags, int tagCount) { // add new tags to file 
 
-    FILE *tagFileW = fopen("tags.txt", "w");
+    FILE *tagFileW = fopen("../tags/tags.txt", "w");
     
     if (tagFileW == NULL) {
             perror("Error opening file for writing");
